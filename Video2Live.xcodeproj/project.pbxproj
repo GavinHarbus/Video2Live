@@ -23,6 +23,7 @@
 		A10014 /* MetadataConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10014 /* MetadataConstants.swift */; };
 		A10015 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10015 /* Errors.swift */; };
 		A10016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10016 /* Assets.xcassets */; };
+		A10017 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10019 /* AboutView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +46,7 @@
 		B10016 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B10017 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B10018 /* Video2Live.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Video2Live.entitlements; sourceTree = "<group>"; };
+		B10019 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +100,7 @@
 				B10004 /* VideoPreviewView.swift */,
 				B10005 /* TimelineScrubberView.swift */,
 				B10006 /* ConvertButton.swift */,
+				B10019 /* AboutView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -215,6 +218,7 @@
 				A10013 /* PhotosImporter.swift in Sources */,
 				A10014 /* MetadataConstants.swift in Sources */,
 				A10015 /* Errors.swift in Sources */,
+				A10017 /* AboutView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
