@@ -84,6 +84,16 @@ The app requests the following permissions:
 
 The app runs in a sandbox and does not access any data beyond what you explicitly provide.
 
+## Build DMG for Distribution
+
+A script is included to package the app into a DMG:
+
+```bash
+./scripts/build-dmg.sh
+```
+
+This will archive, export, and create `build/Video2Live.dmg` with a drag-to-Applications layout.
+
 ## Troubleshooting
 
 - **"Photos library access was denied"** — Go to **System Settings > Privacy & Security > Photos** and grant access to Video2Live.
