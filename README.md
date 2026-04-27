@@ -19,13 +19,7 @@
 
 ## 👀 Demo
 
-<div align="center">
-
-https://github.com/GavinHarbus/Video2Live/raw/main/demo.mp4
-
-<sup>If the video doesn't autoplay above, <a href="demo.mp4">click here to watch the demo</a>.</sup>
-
-</div>
+https://github.com/user-attachments/assets/b5496849-04d7-4657-bd52-f016626d8bed
 
 > Drop a video → pick a 3-second moment → click convert → it's already in your Photos app as a real Live Photo. That's it.
 
