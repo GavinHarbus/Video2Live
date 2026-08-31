@@ -8,9 +8,14 @@ struct TimelineScrubberView: View {
     @Binding var rangeStart: Double
     let rangeDuration: Double
     @Binding var coverTime: Double
+    let onCoverScrub: (Double) -> Void
+    let onCoverScrubEnded: () -> Void
 
     @State private var thumbnails: [NSImage] = []
     @State private var editingMode: EditingMode = .cover
+    @State private var pendingRangeStart: Double?
+    @State private var pendingCoverTime: Double?
+    @State private var dragCoverOffset: Double?
 
     private let thumbnailCount = 20
     private let height: CGFloat = 50
@@ -24,6 +29,14 @@ struct TimelineScrubberView: View {
 
     private var canTrim: Bool {
         duration > rangeDuration
+    }
+
+    private var displayedRangeStart: Double {
+        pendingRangeStart ?? rangeStart
+    }
+
+    private var displayedCoverTime: Double {
+        pendingCoverTime ?? coverTime
     }
 
     var body: some View {
@@ -47,7 +60,7 @@ struct TimelineScrubberView: View {
 
                 Spacer()
 
-                Label(formatTime(coverTime), systemImage: "photo.fill")
+                Label(formatTime(displayedCoverTime), systemImage: "photo.fill")
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.orange)
             }
@@ -102,11 +115,37 @@ struct TimelineScrubberView: View {
                             let time = fraction * duration
 
                             if editingMode == .clip, canTrim {
+                                if dragCoverOffset == nil {
+                                    dragCoverOffset = coverTime - rangeStart
+                                }
+
                                 let maxStart = duration - rangeDuration
-                                rangeStart = min(max(0, time - rangeDuration / 2), maxStart)
+                                let newRangeStart = min(max(0, time - rangeDuration / 2), maxStart)
+                                let coverOffset = dragCoverOffset ?? rangeDuration / 2
+                                pendingRangeStart = newRangeStart
+                                pendingCoverTime = constrainedCoverTime(
+                                    newRangeStart + coverOffset,
+                                    rangeStart: newRangeStart
+                                )
                             } else {
-                                coverTime = min(max(rangeStart, time), rangeStart + rangeDuration)
+                                let newCoverTime = constrainedCoverTime(
+                                    time,
+                                    rangeStart: displayedRangeStart
+                                )
+                                coverTime = newCoverTime
+                                onCoverScrub(newCoverTime)
                             }
+                        }
+                        .onEnded { _ in
+                            if editingMode == .clip, let pendingRangeStart {
+                                rangeStart = pendingRangeStart
+                            } else {
+                                onCoverScrubEnded()
+                            }
+
+                            pendingRangeStart = nil
+                            pendingCoverTime = nil
+                            dragCoverOffset = nil
                         }
                 )
             }
@@ -114,9 +153,9 @@ struct TimelineScrubberView: View {
 
             // Time labels
             HStack {
-                Text(formatTime(rangeStart))
+                Text(formatTime(displayedRangeStart))
                 Spacer()
-                Text(formatTime(rangeStart + rangeDuration))
+                Text(formatTime(displayedRangeStart + rangeDuration))
             }
             .font(.caption2)
             .foregroundStyle(.secondary)
@@ -127,11 +166,11 @@ struct TimelineScrubberView: View {
     }
 
     private func startOffset(width: CGFloat) -> CGFloat {
-        CGFloat(rangeStart / duration) * width
+        CGFloat(displayedRangeStart / duration) * width
     }
 
     private func endOffset(width: CGFloat) -> CGFloat {
-        CGFloat((rangeStart + rangeDuration) / duration) * width
+        CGFloat((displayedRangeStart + rangeDuration) / duration) * width
     }
 
     private func selectionWidth(width: CGFloat) -> CGFloat {
@@ -139,7 +178,12 @@ struct TimelineScrubberView: View {
     }
 
     private func coverOffset(width: CGFloat) -> CGFloat {
-        CGFloat(coverTime / duration) * width
+        CGFloat(displayedCoverTime / duration) * width
+    }
+
+    private func constrainedCoverTime(_ time: Double, rangeStart: Double) -> Double {
+        let lastFrameTime = rangeStart + max(0, rangeDuration - 1.0 / 30.0)
+        return min(max(rangeStart, time), lastFrameTime)
     }
 
     private func formatTime(_ seconds: Double) -> String {

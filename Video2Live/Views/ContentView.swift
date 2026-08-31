@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var analysisID: UUID?
     @State private var conversionID: UUID?
     @State private var isPreviewing = false
+    @State private var lastCoverSeekTime: TimeInterval = 0
 
     private let analyzer = VideoAnalyzer()
 
@@ -83,14 +84,13 @@ struct ContentView: View {
                     coverTime: Binding(
                         get: { project.coverTime },
                         set: { project.setCoverTime($0) }
-                    )
+                    ),
+                    onCoverScrub: { previewCover(at: $0) },
+                    onCoverScrubEnded: { showCover() }
                 )
                 .padding(.horizontal, 20)
                 .onChange(of: project.rangeStart) { _, _ in
                     updatePlayerLoop()
-                }
-                .onChange(of: project.coverTime) { _, _ in
-                    showCover()
                 }
             }
 
@@ -190,6 +190,22 @@ struct ContentView: View {
         player.seek(to: project.keyFrameTime, toleranceBefore: .zero, toleranceAfter: .zero)
     }
 
+    private func previewCover(at localTime: Double) {
+        guard !isPreviewing, let player else { return }
+
+        let now = ProcessInfo.processInfo.systemUptime
+        guard now - lastCoverSeekTime >= 1.0 / 30.0 else { return }
+        lastCoverSeekTime = now
+
+        let time = CMTimeAdd(
+            project.sourceTimeRange.start,
+            CMTime(seconds: localTime, preferredTimescale: 600)
+        )
+        let tolerance = CMTime(seconds: 1.0 / 15.0, preferredTimescale: 600)
+        player.pause()
+        player.seek(to: time, toleranceBefore: tolerance, toleranceAfter: tolerance)
+    }
+
     private func startConversion() {
         guard let sourceURL = project.sourceURL else { return }
 
@@ -217,6 +233,7 @@ struct ContentView: View {
     private func resetAll() {
         cancelCurrentWork()
         isPreviewing = false
+        lastCoverSeekTime = 0
         player?.pause()
         player = nil
         looper = nil
