@@ -1,10 +1,19 @@
 import AVFoundation
 
+private final class UnsafeSendableBox<Value>: @unchecked Sendable {
+    let value: Value
+
+    init(_ value: Value) {
+        self.value = value
+    }
+}
+
 struct MOVWriter {
     func writeMOV(
         from sourceAsset: AVURLAsset,
         timeRange: CMTimeRange,
         contentIdentifier: String,
+        stillImageTime: CMTime,
         to outputURL: URL
     ) async throws {
         try Task.checkCancellation()
@@ -76,7 +85,10 @@ struct MOVWriter {
         let compositionDuration = try await composition.load(.duration)
         guard appendStillImageMetadata(
             with: metadataAdaptor,
-            at: CMTimeMultiplyByFloat64(compositionDuration, multiplier: 0.5)
+            at: CMTimeClampToRange(
+                stillImageTime,
+                range: CMTimeRange(start: .zero, duration: compositionDuration)
+            )
         ) else {
             writer.cancelWriting()
             throw V2LError.movExportFailed(writer.error?.localizedDescription ?? "Failed to write Live Photo metadata")
@@ -88,6 +100,7 @@ struct MOVWriter {
             throw V2LError.movExportFailed(reader.error?.localizedDescription ?? "Failed to start reading media")
         }
 
+        let cancellableReader = UnsafeSendableBox(reader)
         do {
             try await withTaskCancellationHandler {
                 async let writeVideo: Void = appendSamples(
@@ -111,7 +124,7 @@ struct MOVWriter {
                     try await writeVideo
                 }
             } onCancel: {
-                reader.cancelReading()
+                cancellableReader.value.cancelReading()
             }
         } catch {
             reader.cancelReading()
@@ -233,25 +246,30 @@ struct MOVWriter {
         writer: AVAssetWriter,
         queueLabel: String
     ) async throws {
+        let output = UnsafeSendableBox(output)
+        let input = UnsafeSendableBox(input)
+        let reader = UnsafeSendableBox(reader)
+        let writer = UnsafeSendableBox(writer)
+
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            input.requestMediaDataWhenReady(on: DispatchQueue(label: queueLabel)) {
-                while input.isReadyForMoreMediaData {
-                    if let sampleBuffer = output.copyNextSampleBuffer() {
-                        guard input.append(sampleBuffer) else {
-                            input.markAsFinished()
+            input.value.requestMediaDataWhenReady(on: DispatchQueue(label: queueLabel)) {
+                while input.value.isReadyForMoreMediaData {
+                    if let sampleBuffer = output.value.copyNextSampleBuffer() {
+                        guard input.value.append(sampleBuffer) else {
+                            input.value.markAsFinished()
                             continuation.resume(throwing: V2LError.movExportFailed(
-                                writer.error?.localizedDescription ?? "Failed to append media data"
+                                writer.value.error?.localizedDescription ?? "Failed to append media data"
                             ))
                             return
                         }
                     } else {
-                        input.markAsFinished()
+                        input.value.markAsFinished()
 
-                        if reader.status == .failed {
+                        if reader.value.status == .failed {
                             continuation.resume(throwing: V2LError.movExportFailed(
-                                reader.error?.localizedDescription ?? "Failed while reading media data"
+                                reader.value.error?.localizedDescription ?? "Failed while reading media data"
                             ))
-                        } else if reader.status == .cancelled {
+                        } else if reader.value.status == .cancelled {
                             continuation.resume(throwing: CancellationError())
                         } else {
                             continuation.resume()

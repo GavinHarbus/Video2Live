@@ -7,18 +7,50 @@ struct TimelineScrubberView: View {
     let asset: AVURLAsset
     @Binding var rangeStart: Double
     let rangeDuration: Double
+    @Binding var coverTime: Double
 
     @State private var thumbnails: [NSImage] = []
-    @State private var isDragging = false
+    @State private var editingMode: EditingMode = .cover
 
     private let thumbnailCount = 20
     private let height: CGFloat = 50
 
+    private enum EditingMode: String, CaseIterable, Identifiable {
+        case clip
+        case cover
+
+        var id: Self { self }
+    }
+
+    private var canTrim: Bool {
+        duration > rangeDuration
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Select a \(String(format: "%.0f", rangeDuration))-second clip")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                if canTrim {
+                    Picker("Timeline editing mode", selection: $editingMode) {
+                        Label("Clip", systemImage: "scissors")
+                            .tag(EditingMode.clip)
+                        Label("Cover", systemImage: "photo")
+                            .tag(EditingMode.cover)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .frame(width: 180)
+                } else {
+                    Label("Cover", systemImage: "photo")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Label(formatTime(coverTime), systemImage: "photo.fill")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.orange)
+            }
 
             GeometryReader { geometry in
                 let width = geometry.size.width
@@ -35,35 +67,46 @@ struct TimelineScrubberView: View {
                         }
                     }
 
-                    // Dimmed overlay (before selection)
-                    Rectangle()
-                        .fill(.black.opacity(0.5))
-                        .frame(width: startOffset(width: width), height: height)
+                    if canTrim {
+                        Rectangle()
+                            .fill(.black.opacity(0.5))
+                            .frame(width: startOffset(width: width), height: height)
 
-                    // Dimmed overlay (after selection)
-                    Rectangle()
-                        .fill(.black.opacity(0.5))
-                        .frame(width: width - endOffset(width: width), height: height)
-                        .offset(x: endOffset(width: width))
+                        Rectangle()
+                            .fill(.black.opacity(0.5))
+                            .frame(width: width - endOffset(width: width), height: height)
+                            .offset(x: endOffset(width: width))
+                    }
 
-                    // Selection border
                     RoundedRectangle(cornerRadius: 4)
                         .strokeBorder(Color.accentColor, lineWidth: 2)
                         .frame(width: selectionWidth(width: width), height: height)
                         .offset(x: startOffset(width: width))
+
+                    VStack(spacing: 0) {
+                        Image(systemName: "arrowtriangle.down.fill")
+                            .font(.system(size: 8))
+                        Rectangle()
+                            .frame(width: 2)
+                    }
+                    .foregroundStyle(.orange)
+                    .frame(width: 16, height: height)
+                    .offset(x: coverOffset(width: width) - 8)
+                    .shadow(color: .black.opacity(0.7), radius: 1)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 4))
                 .gesture(
-                    DragGesture()
+                    DragGesture(minimumDistance: 0)
                         .onChanged { value in
-                            isDragging = true
-                            let fraction = value.location.x / width
+                            let fraction = min(max(0, value.location.x / width), 1)
                             let time = fraction * duration
-                            let maxStart = duration - rangeDuration
-                            rangeStart = min(max(0, time - rangeDuration / 2), maxStart)
-                        }
-                        .onEnded { _ in
-                            isDragging = false
+
+                            if editingMode == .clip, canTrim {
+                                let maxStart = duration - rangeDuration
+                                rangeStart = min(max(0, time - rangeDuration / 2), maxStart)
+                            } else {
+                                coverTime = min(max(rangeStart, time), rangeStart + rangeDuration)
+                            }
                         }
                 )
             }
@@ -93,6 +136,10 @@ struct TimelineScrubberView: View {
 
     private func selectionWidth(width: CGFloat) -> CGFloat {
         CGFloat(rangeDuration / duration) * width
+    }
+
+    private func coverOffset(width: CGFloat) -> CGFloat {
+        CGFloat(coverTime / duration) * width
     }
 
     private func formatTime(_ seconds: Double) -> String {

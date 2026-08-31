@@ -21,6 +21,7 @@ final class LivePhotoGenerator {
 
         let timeRange = project.selectedTimeRange
         let keyFrameTime = project.keyFrameTime
+        let stillImageTime = project.stillImageTime
 
         // Step 1: Extract key frame
         try Task.checkCancellation()
@@ -43,6 +44,7 @@ final class LivePhotoGenerator {
             from: asset,
             timeRange: timeRange,
             contentIdentifier: contentIdentifier,
+            stillImageTime: stillImageTime,
             to: movURL
         )
         try Task.checkCancellation()
