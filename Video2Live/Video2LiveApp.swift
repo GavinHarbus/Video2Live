@@ -66,10 +66,6 @@ struct Video2LiveApp: App {
                 Button("About Video2Live") {
                     AuxiliaryWindowPresenter.shared.showAbout()
                 }
-
-                Divider()
-
-                Link("Privacy Policy…", destination: AboutView.privacyPolicyURL)
             }
 
             CommandGroup(before: .windowList) {
