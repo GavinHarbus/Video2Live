@@ -1,16 +1,26 @@
 import AVFoundation
 
 struct VideoAnalyzer {
-    func analyze(url: URL) async throws -> (asset: AVURLAsset, duration: Double, size: CGSize) {
+    func analyze(url: URL) async throws -> (
+        asset: AVURLAsset,
+        timeRange: CMTimeRange,
+        duration: Double,
+        size: CGSize
+    ) {
         let asset = AVURLAsset(url: url, options: [
             AVURLAssetPreferPreciseDurationAndTimingKey: true
         ])
 
-        let duration = try await asset.load(.duration)
         let tracks = try await asset.loadTracks(withMediaType: .video)
 
         guard let videoTrack = tracks.first else {
             throw V2LError.noVideoTrack
+        }
+
+        let timeRange = try await videoTrack.load(.timeRange)
+        let duration = timeRange.duration.seconds
+        guard timeRange.isValid, !timeRange.isEmpty, duration.isFinite, duration > 0 else {
+            throw V2LError.invalidVideoFile
         }
 
         let size = try await videoTrack.load(.naturalSize)
@@ -21,6 +31,6 @@ struct VideoAnalyzer {
             height: abs(transformedSize.height)
         )
 
-        return (asset, duration.seconds, naturalSize)
+        return (asset, timeRange, duration, naturalSize)
     }
 }

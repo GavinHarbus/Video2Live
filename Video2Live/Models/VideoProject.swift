@@ -4,6 +4,7 @@ import AVFoundation
 @Observable
 final class VideoProject {
     var sourceURL: URL?
+    var sourceTimeRange: CMTimeRange = .zero
     var duration: Double = 0
     var naturalSize: CGSize = .zero
     var state: ConversionState = .idle
@@ -20,13 +21,15 @@ final class VideoProject {
     }
 
     var selectedTimeRange: CMTimeRange {
-        if isLongVideo {
-            let start = CMTime(seconds: rangeStart, preferredTimescale: 600)
-            let dur = CMTime(seconds: rangeDuration, preferredTimescale: 600)
-            return CMTimeRange(start: start, duration: dur)
-        } else {
-            return CMTimeRange(start: .zero, duration: CMTime(seconds: duration, preferredTimescale: 600))
-        }
+        let localStart = isLongVideo ? rangeStart : 0
+        let selectedDuration = isLongVideo ? rangeDuration : duration
+        let start = CMTimeAdd(
+            sourceTimeRange.start,
+            CMTime(seconds: localStart, preferredTimescale: 600)
+        )
+        let duration = CMTime(seconds: selectedDuration, preferredTimescale: 600)
+
+        return CMTimeRange(start: start, duration: duration)
     }
 
     var keyFrameTime: CMTime {
@@ -36,6 +39,7 @@ final class VideoProject {
 
     func reset() {
         sourceURL = nil
+        sourceTimeRange = .zero
         duration = 0
         naturalSize = .zero
         state = .idle

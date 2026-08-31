@@ -8,6 +8,10 @@ struct ContentView: View {
     @State private var player: AVPlayer?
     @State private var looper: AVPlayerLooper?
     @State private var droppedURL: URL?
+    @State private var analysisTask: Task<Void, Never>?
+    @State private var conversionTask: Task<Void, Never>?
+    @State private var analysisID: UUID?
+    @State private var conversionID: UUID?
 
     private let analyzer = VideoAnalyzer()
 
@@ -24,6 +28,9 @@ struct ContentView: View {
             if let url = newURL {
                 analyzeVideo(url: url)
             }
+        }
+        .onDisappear {
+            cancelCurrentWork()
         }
     }
 
@@ -42,6 +49,7 @@ struct ContentView: View {
             if project.isLongVideo, let asset = project.asset {
                 TimelineScrubberView(
                     duration: project.duration,
+                    sourceStartTime: project.sourceTimeRange.start,
                     asset: asset,
                     rangeStart: $project.rangeStart,
                     rangeDuration: project.rangeDuration
@@ -76,13 +84,22 @@ struct ContentView: View {
     }
 
     private func analyzeVideo(url: URL) {
+        analysisTask?.cancel()
+        conversionTask?.cancel()
+        let operationID = UUID()
+        analysisID = operationID
+        conversionID = nil
         project.state = .analyzing
         project.sourceURL = url
 
-        Task {
+        analysisTask = Task {
             do {
                 let result = try await analyzer.analyze(url: url)
+                try Task.checkCancellation()
+                guard analysisID == operationID, project.sourceURL == url else { return }
+
                 project.asset = result.asset
+                project.sourceTimeRange = result.timeRange
                 project.duration = result.duration
                 project.naturalSize = result.size
 
@@ -94,7 +111,10 @@ struct ContentView: View {
 
                 setupPlayer()
                 project.state = .ready
+            } catch is CancellationError {
+                return
             } catch {
+                guard analysisID == operationID, project.sourceURL == url else { return }
                 project.state = .failed(message: error.localizedDescription)
             }
         }
@@ -130,25 +150,45 @@ struct ContentView: View {
     }
 
     private func startConversion() {
+        guard let sourceURL = project.sourceURL else { return }
+
+        conversionTask?.cancel()
+        let operationID = UUID()
+        conversionID = operationID
         project.state = .converting(progress: 0)
         generator.progress = 0
 
-        Task {
+        conversionTask = Task {
             do {
                 try await generator.generate(project: project)
+                try Task.checkCancellation()
+                guard conversionID == operationID, project.sourceURL == sourceURL else { return }
                 project.state = .completed
+            } catch is CancellationError {
+                return
             } catch {
+                guard conversionID == operationID, project.sourceURL == sourceURL else { return }
                 project.state = .failed(message: error.localizedDescription)
             }
         }
     }
 
     private func resetAll() {
+        cancelCurrentWork()
         player?.pause()
         player = nil
         looper = nil
         droppedURL = nil
         project.reset()
         generator.progress = 0
+    }
+
+    private func cancelCurrentWork() {
+        analysisTask?.cancel()
+        conversionTask?.cancel()
+        analysisTask = nil
+        conversionTask = nil
+        analysisID = nil
+        conversionID = nil
     }
 }

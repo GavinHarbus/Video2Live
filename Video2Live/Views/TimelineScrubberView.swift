@@ -3,6 +3,7 @@ import AVFoundation
 
 struct TimelineScrubberView: View {
     let duration: Double
+    let sourceStartTime: CMTime
     let asset: AVURLAsset
     @Binding var rangeStart: Double
     let rangeDuration: Double
@@ -107,9 +108,12 @@ struct TimelineScrubberView: View {
 
         var images: [NSImage] = []
         for i in 0..<thumbnailCount {
-            let time = CMTime(
-                seconds: duration * Double(i) / Double(thumbnailCount),
-                preferredTimescale: 600
+            let time = CMTimeAdd(
+                sourceStartTime,
+                CMTime(
+                    seconds: duration * Double(i) / Double(thumbnailCount),
+                    preferredTimescale: 600
+                )
             )
             do {
                 let (cgImage, _) = try await generator.image(at: time)
