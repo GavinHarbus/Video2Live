@@ -6,11 +6,14 @@ struct PhotosImporter {
     }
 
     func importLivePhoto(heicURL: URL, movURL: URL) async throws {
+        try Task.checkCancellation()
         let status = await requestAuthorization()
+        try Task.checkCancellation()
         guard status == .authorized || status == .limited else {
             throw V2LError.photosAuthorizationDenied
         }
 
+        try Task.checkCancellation()
         try await PHPhotoLibrary.shared().performChanges {
             let request = PHAssetCreationRequest.forAsset()
             let options = PHAssetResourceCreationOptions()

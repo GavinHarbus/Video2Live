@@ -1,48 +1,71 @@
 import SwiftUI
 
 struct AboutView: View {
+    static let privacyPolicyURL = URL(string: "https://gavinschneestudio.org/privacy.html")!
+
     private let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    private let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
 
     var body: some View {
-        VStack(spacing: 20) {
-            // App Icon
-            Image(nsImage: NSApp.applicationIconImage)
-                .resizable()
-                .frame(width: 96, height: 96)
+        VStack(alignment: .leading, spacing: 22) {
+            HStack(spacing: 20) {
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .frame(width: 88, height: 88)
+                    .accessibilityHidden(true)
 
-            // App Name & Version
-            VStack(spacing: 4) {
-                Text("Video2Live")
-                    .font(.title.bold())
-                Text("Version \(appVersion)")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Video2Live")
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
+
+                    Text("Version \(appVersion) (\(buildNumber))")
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundStyle(.secondary)
+
+                    Text("Video to Live Photo, entirely on your Mac.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
             }
 
-            // Description
-            Text("A native macOS app that converts video files into Live Photos. Pick a video, select a 3-second clip, and import the result directly into your Photos library.")
+            Text("A native macOS app that converts video files into Live Photos. Pick a clip and cover frame, preview the result, and save it directly to your Photos library.")
                 .font(.body)
-                .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
-                .frame(maxWidth: 340)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 24) {
+                privacyPoint("On-device", icon: "macbook")
+                privacyPoint("No tracking", icon: "eye.slash")
+                privacyPoint("Add-only Photos", icon: "photo.badge.plus")
+            }
 
             Divider()
-                .frame(width: 200)
 
-            // Developer Info
-            VStack(spacing: 6) {
-                Text("Developed by Gavin Schnee")
-                    .font(.callout)
+            HStack(alignment: .center) {
+                Text("© 2026 Gavin Schnee Studio. All Rights Reserved.")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
 
-                Link("gavinschneestudio.org", destination: URL(string: "https://gavinschneestudio.org/")!)
-                    .font(.callout)
+                Spacer()
+
+                Link(destination: URL(string: "https://gavinschneestudio.org/")!) {
+                    Label("Website", systemImage: "globe")
+                }
+                .buttonStyle(.link)
+
+                Link(destination: Self.privacyPolicyURL) {
+                    Label("Privacy", systemImage: "hand.raised")
+                }
+                .buttonStyle(.link)
             }
-
-            Text("\u{00A9} 2025 Gavin Schnee. All rights reserved.")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
         }
-        .padding(30)
-        .frame(width: 420, height: 380)
+        .padding(32)
+        .frame(width: 520)
+    }
+
+    private func privacyPoint(_ title: String, icon: String) -> some View {
+        Label(title, systemImage: icon)
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.secondary)
     }
 }

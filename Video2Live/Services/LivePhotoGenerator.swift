@@ -21,10 +21,13 @@ final class LivePhotoGenerator {
 
         let timeRange = project.selectedTimeRange
         let keyFrameTime = project.keyFrameTime
+        let stillImageTime = project.stillImageTime
 
         // Step 1: Extract key frame
+        try Task.checkCancellation()
         let heicWriter = HEICWriter()
         let keyFrame = try await heicWriter.extractKeyFrame(from: asset, at: keyFrameTime)
+        try Task.checkCancellation()
         await MainActor.run { progress = 0.2 }
 
         // Step 2: Generate shared UUID
@@ -32,6 +35,7 @@ final class LivePhotoGenerator {
 
         // Step 3: Write HEIC with metadata
         try heicWriter.writeHEIC(image: keyFrame, contentIdentifier: contentIdentifier, to: heicURL)
+        try Task.checkCancellation()
         await MainActor.run { progress = 0.4 }
 
         // Step 4: Write MOV with metadata
@@ -40,13 +44,16 @@ final class LivePhotoGenerator {
             from: asset,
             timeRange: timeRange,
             contentIdentifier: contentIdentifier,
+            stillImageTime: stillImageTime,
             to: movURL
         )
+        try Task.checkCancellation()
         await MainActor.run { progress = 0.7 }
 
         // Step 5: Import to Photos
         let importer = PhotosImporter()
         try await importer.importLivePhoto(heicURL: heicURL, movURL: movURL)
+        try Task.checkCancellation()
         await MainActor.run { progress = 1.0 }
     }
 }

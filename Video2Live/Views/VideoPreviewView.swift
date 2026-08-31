@@ -7,7 +7,7 @@ struct VideoPreviewView: NSViewRepresentable {
     func makeNSView(context: Context) -> AVPlayerView {
         let view = AVPlayerView()
         view.player = player
-        view.controlsStyle = .inline
+        view.controlsStyle = .none
         view.showsFullScreenToggleButton = false
         return view
     }
