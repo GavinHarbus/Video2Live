@@ -1,5 +1,11 @@
 import SwiftUI
 
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+}
+
 @MainActor
 final class AuxiliaryWindowPresenter {
     static let shared = AuxiliaryWindowPresenter()
@@ -47,8 +53,11 @@ final class AuxiliaryWindowPresenter {
 
 @main
 struct Video2LiveApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @Environment(\.openWindow) private var openWindow
+
     var body: some Scene {
-        WindowGroup {
+        WindowGroup("Video2Live", id: "main") {
             ContentView()
         }
         .defaultSize(width: 720, height: 520)
@@ -61,6 +70,15 @@ struct Video2LiveApp: App {
                 Divider()
 
                 Link("Privacy Policy…", destination: AboutView.privacyPolicyURL)
+            }
+
+            CommandGroup(before: .windowList) {
+                Button("Video2Live") {
+                    openWindow(id: "main")
+                }
+                .keyboardShortcut("0", modifiers: .command)
+
+                Divider()
             }
         }
     }
