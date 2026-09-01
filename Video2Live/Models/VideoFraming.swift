@@ -3,6 +3,7 @@ import CoreGraphics
 enum OutputAspectRatio: String, CaseIterable, Identifiable {
     case original
     case portrait
+    case standard
     case square
 
     var id: Self { self }
@@ -13,6 +14,8 @@ enum OutputAspectRatio: String, CaseIterable, Identifiable {
             return "Original"
         case .portrait:
             return "9:16"
+        case .standard:
+            return "4:3"
         case .square:
             return "1:1"
         }
@@ -24,6 +27,8 @@ enum OutputAspectRatio: String, CaseIterable, Identifiable {
             return nil
         case .portrait:
             return CGSize(width: 9, height: 16)
+        case .standard:
+            return CGSize(width: 4, height: 3)
         case .square:
             return CGSize(width: 1, height: 1)
         }

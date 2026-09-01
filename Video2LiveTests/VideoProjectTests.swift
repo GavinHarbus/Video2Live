@@ -88,6 +88,19 @@ final class VideoProjectTests: XCTestCase {
         XCTAssertEqual(framing.renderSize(for: cropRect.size), CGSize(width: 1080, height: 1080))
     }
 
+    func testStandardFramingCropsWidescreenVideoToFourByThree() {
+        let framing = VideoFraming(aspectRatio: .standard, position: 0)
+
+        let cropRect = framing.cropRect(in: CGSize(width: 1920, height: 1080))
+
+        XCTAssertEqual(framing.cropAxis(in: CGSize(width: 1920, height: 1080)), .horizontal)
+        XCTAssertEqual(cropRect, CGRect(x: 240, y: 0, width: 1440, height: 1080))
+        XCTAssertEqual(
+            framing.renderSize(for: CGSize(width: 1920, height: 1080)),
+            CGSize(width: 1440, height: 1080)
+        )
+    }
+
     func testChangingAspectRatioRecentersCrop() {
         let project = VideoProject()
         project.framing = VideoFraming(aspectRatio: .portrait, position: 0.8)

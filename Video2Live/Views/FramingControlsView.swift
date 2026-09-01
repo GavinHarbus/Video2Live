@@ -24,7 +24,7 @@ struct FramingControlsView: View {
             }
             .pickerStyle(.segmented)
             .labelsHidden()
-            .frame(width: 180)
+            .frame(width: 240)
 
             if cropAxis != .none {
                 Button {
