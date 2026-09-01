@@ -132,6 +132,7 @@ struct ContentView: View {
             if let asset = project.asset {
                 FramingControlsView(
                     sourceSize: project.naturalSize,
+                    sourceHasAudio: project.sourceHasAudio,
                     aspectRatio: Binding(
                         get: { project.framing.aspectRatio },
                         set: {
@@ -146,6 +147,14 @@ struct ContentView: View {
                             project.setCropPosition($0)
                             markProjectDirty()
                             updatePlayerLoop()
+                        }
+                    ),
+                    includesAudio: Binding(
+                        get: { project.includesAudio },
+                        set: {
+                            project.setIncludesAudio($0)
+                            player?.isMuted = !project.includesAudio
+                            markProjectDirty()
                         }
                     )
                 )
@@ -233,6 +242,8 @@ struct ContentView: View {
                 project.sourceTimeRange = result.timeRange
                 project.duration = result.duration
                 project.naturalSize = result.size
+                project.sourceHasAudio = result.hasAudio
+                project.includesAudio = result.hasAudio
                 project.configureClip(for: result.duration)
 
                 setupPlayer()
@@ -283,6 +294,7 @@ struct ContentView: View {
         playerSetupID = operationID
         let range = project.selectedTimeRange
         let framing = project.framing
+        let includesAudio = project.includesAudio
 
         playerSetupTask = Task {
             do {
@@ -301,6 +313,7 @@ struct ContentView: View {
                     templateItem: playerItem,
                     timeRange: range
                 )
+                queuePlayer.isMuted = !includesAudio
                 player?.pause()
                 player = queuePlayer
                 showCover()

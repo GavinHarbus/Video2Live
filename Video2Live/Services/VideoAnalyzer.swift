@@ -5,7 +5,8 @@ struct VideoAnalyzer {
         asset: AVURLAsset,
         timeRange: CMTimeRange,
         duration: Double,
-        size: CGSize
+        size: CGSize,
+        hasAudio: Bool
     ) {
         let asset = AVURLAsset(url: url, options: [
             AVURLAssetPreferPreciseDurationAndTimingKey: true
@@ -40,6 +41,8 @@ struct VideoAnalyzer {
             throw V2LError.invalidVideoFile
         }
 
-        return (asset, timeRange, duration, naturalSize)
+        let audioTracks = try await asset.loadTracks(withMediaType: .audio)
+
+        return (asset, timeRange, duration, naturalSize, !audioTracks.isEmpty)
     }
 }

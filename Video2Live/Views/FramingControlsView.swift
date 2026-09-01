@@ -2,8 +2,10 @@ import SwiftUI
 
 struct FramingControlsView: View {
     let sourceSize: CGSize
+    let sourceHasAudio: Bool
     @Binding var aspectRatio: OutputAspectRatio
     @Binding var position: Double
+    @Binding var includesAudio: Bool
 
     private var cropAxis: CropAxis {
         VideoFraming(aspectRatio: aspectRatio, position: position)
@@ -38,8 +40,31 @@ struct FramingControlsView: View {
                 .disabled(abs(position) < 0.001)
             }
 
+            Divider()
+                .frame(height: 18)
+
+            Toggle(isOn: $includesAudio) {
+                Label(
+                    audioLabel,
+                    systemImage: audioIcon
+                )
+            }
+            .toggleStyle(.button)
+            .buttonStyle(.borderless)
+            .disabled(!sourceHasAudio)
+            .help(sourceHasAudio ? "Include audio" : "Source video has no audio")
+
             Spacer(minLength: 0)
         }
         .frame(minHeight: 24)
+    }
+
+    private var audioLabel: String {
+        guard sourceHasAudio else { return "No Audio" }
+        return includesAudio ? "Sound" : "Muted"
+    }
+
+    private var audioIcon: String {
+        sourceHasAudio && includesAudio ? "speaker.wave.2.fill" : "speaker.slash.fill"
     }
 }

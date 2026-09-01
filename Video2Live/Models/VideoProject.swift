@@ -11,6 +11,8 @@ final class VideoProject {
     var naturalSize: CGSize = .zero
     var state: ConversionState = .idle
     var framing = VideoFraming()
+    var sourceHasAudio = false
+    var includesAudio = false
 
     // For long videos: user-selected range
     var rangeStart: Double = 0
@@ -73,6 +75,10 @@ final class VideoProject {
         framing.position = min(max(position, -1), 1)
     }
 
+    func setIncludesAudio(_ includesAudio: Bool) {
+        self.includesAudio = sourceHasAudio && includesAudio
+    }
+
     func reset() {
         sourceURL = nil
         sourceTimeRange = .zero
@@ -83,6 +89,8 @@ final class VideoProject {
         rangeDuration = Self.maximumClipDuration
         coverTime = Self.maximumClipDuration / 2
         framing = VideoFraming()
+        sourceHasAudio = false
+        includesAudio = false
         asset = nil
     }
 }

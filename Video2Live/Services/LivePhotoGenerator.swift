@@ -72,6 +72,7 @@ final class LivePhotoGenerator {
             contentIdentifier: contentIdentifier,
             stillImageTime: stillImageTime,
             framing: project.framing,
+            includesAudio: project.includesAudio,
             to: movURL
         )
         try Task.checkCancellation()

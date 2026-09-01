@@ -111,6 +111,24 @@ final class VideoProjectTests: XCTestCase {
         XCTAssertEqual(project.framing.position, 0)
     }
 
+    func testAudioDefaultsToDisabledAndCannotEnableWithoutSourceAudio() {
+        let project = VideoProject()
+
+        XCTAssertFalse(project.includesAudio)
+        project.setIncludesAudio(true)
+
+        XCTAssertFalse(project.includesAudio)
+    }
+
+    func testAudioCanBeMutedWhenSourceHasAudio() {
+        let project = VideoProject()
+        project.sourceHasAudio = true
+
+        project.setIncludesAudio(false)
+
+        XCTAssertFalse(project.includesAudio)
+    }
+
     func testRenderTransformMapsCropBoundsToOutputBounds() {
         let geometry = VideoFraming(aspectRatio: .portrait, position: 0)
             .renderGeometry(

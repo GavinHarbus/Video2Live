@@ -15,11 +15,16 @@ struct MOVWriter {
         contentIdentifier: String,
         stillImageTime: CMTime,
         framing: VideoFraming = VideoFraming(),
+        includesAudio: Bool = true,
         to outputURL: URL
     ) async throws {
         try Task.checkCancellation()
 
-        let composition = try await makeComposition(from: sourceAsset, timeRange: timeRange)
+        let composition = try await makeComposition(
+            from: sourceAsset,
+            timeRange: timeRange,
+            includesAudio: includesAudio
+        )
         let writer = try AVAssetWriter(outputURL: outputURL, fileType: .mov)
 
         let contentIdentifierItem = AVMutableMetadataItem()
@@ -217,7 +222,8 @@ struct MOVWriter {
 
     private func makeComposition(
         from sourceAsset: AVURLAsset,
-        timeRange: CMTimeRange
+        timeRange: CMTimeRange,
+        includesAudio: Bool
     ) async throws -> AVMutableComposition {
         let sourceVideoTracks = try await sourceAsset.loadTracks(withMediaType: .video)
         guard let sourceVideoTrack = sourceVideoTracks.first else {
@@ -240,7 +246,9 @@ struct MOVWriter {
         try compositionVideoTrack.insertTimeRange(videoRange, of: sourceVideoTrack, at: .zero)
         compositionVideoTrack.preferredTransform = try await sourceVideoTrack.load(.preferredTransform)
 
-        let sourceAudioTracks = try await sourceAsset.loadTracks(withMediaType: .audio)
+        let sourceAudioTracks = includesAudio
+            ? try await sourceAsset.loadTracks(withMediaType: .audio)
+            : []
         if let sourceAudioTrack = sourceAudioTracks.first {
             let sourceAudioRange = try await sourceAudioTrack.load(.timeRange)
             let audioRange = CMTimeRangeGetIntersection(videoRange, otherRange: sourceAudioRange)
