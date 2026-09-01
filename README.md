@@ -11,7 +11,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/GavinHarbus/Video2Live?style=for-the-badge&logo=github)](https://github.com/GavinHarbus/Video2Live/stargazers)
 
-[**⬇️ Download for macOS**](https://github.com/GavinHarbus/Video2Live/releases/tag/v1.0.0) · [**🌐 Product page**](https://gavinschneestudio.com/products/video2live.html) · [**🐛 Report a bug**](https://github.com/GavinHarbus/Video2Live/issues) · [**⭐ Star the repo**](https://github.com/GavinHarbus/Video2Live)
+[**⬇️ Download for macOS**](https://github.com/GavinHarbus/Video2Live/releases/tag/v1.0.0) · [**🌐 Product page**](https://gavinschneestudio.org/products/video2live.html) · [**🐛 Report a bug**](https://github.com/GavinHarbus/Video2Live/issues) · [**⭐ Star the repo**](https://github.com/GavinHarbus/Video2Live)
 
 </div>
 
@@ -170,7 +170,7 @@ Video2Live requests the absolute minimum:
 
 The app runs inside the macOS App Sandbox and **never makes a network request**. There is no analytics SDK, no telemetry, no crash reporter, nothing. Your videos never leave your Mac.
 
-Read the full privacy policy on the [product page](https://gavinschneestudio.com/products/video2live.html).
+Read the full [privacy policy](https://gavinschneestudio.org/privacy.html).
 
 ---
 
@@ -204,7 +204,7 @@ If Video2Live saved you time, please:
 - 🐛 [File issues](https://github.com/GavinHarbus/Video2Live/issues) and feature requests.
 - 🔧 Pull requests welcome — see [Project Structure](#-project-structure) to get oriented.
 
-Want more native, privacy-first tools for creators? Check out the rest of [**Gavin Schnee Studio**](https://gavinschneestudio.com).
+Want more native, privacy-first tools for creators? Check out the rest of [**Gavin Schnee Studio**](https://gavinschneestudio.org).
 
 ---
 
