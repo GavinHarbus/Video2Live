@@ -30,8 +30,11 @@ struct ConvertButton: View {
             case .completed:
                 Label("Live Photo saved to Photos!", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
-                Button("Convert Another", action: resetAction)
-                    .buttonStyle(.bordered)
+                Button(action: action) {
+                    Label("Convert to Live Photo", systemImage: "livephoto")
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
 
             case .failed(let message):
                 VStack(alignment: .leading, spacing: 4) {

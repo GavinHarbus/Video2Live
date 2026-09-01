@@ -229,6 +229,10 @@ struct ContentView: View {
                 try Task.checkCancellation()
                 guard conversionID == operationID, project.sourceURL == sourceURL else { return }
                 project.state = .completed
+
+                try await Task.sleep(for: .seconds(2))
+                guard conversionID == operationID, project.sourceURL == sourceURL else { return }
+                project.state = .ready
             } catch is CancellationError {
                 return
             } catch {
