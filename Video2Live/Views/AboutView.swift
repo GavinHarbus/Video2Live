@@ -15,7 +15,7 @@ struct AboutView: View {
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("Video2Live")
+                    Text("Video2LivePhoto")
                         .font(.system(size: 30, weight: .bold, design: .rounded))
 
                     Text("Version \(appVersion) (\(buildNumber))")

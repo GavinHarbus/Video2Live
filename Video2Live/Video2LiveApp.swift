@@ -58,7 +58,7 @@ final class AuxiliaryWindowPresenter {
     func showAbout() {
         if aboutWindowController == nil {
             aboutWindowController = makeWindow(
-                title: "About Video2Live",
+                title: "About Video2LivePhoto",
                 id: "about",
                 content: AboutView()
             )
@@ -98,7 +98,7 @@ struct Video2LiveApp: App {
     @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
-        WindowGroup("Video2Live", id: "main") {
+        WindowGroup("Video2LivePhoto", id: "main") {
             ContentView()
         }
         .defaultSize(width: 720, height: 520)
@@ -106,13 +106,13 @@ struct Video2LiveApp: App {
             VideoCommands()
 
             CommandGroup(replacing: .appInfo) {
-                Button("About Video2Live") {
+                Button("About Video2LivePhoto") {
                     AuxiliaryWindowPresenter.shared.showAbout()
                 }
             }
 
             CommandGroup(before: .windowList) {
-                Button("Video2Live") {
+                Button("Video2LivePhoto") {
                     openWindow(id: "main")
                 }
                 .keyboardShortcut("0", modifiers: .command)
