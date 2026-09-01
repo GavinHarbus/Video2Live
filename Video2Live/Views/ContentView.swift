@@ -69,6 +69,14 @@ struct ContentView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 12)
+
+                if project.state == .ready {
+                    Label("Press and hold the preview to play", systemImage: "livephoto")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .accessibilityLabel("Press and hold the video preview to play the Live Photo")
+                }
             }
 
             if let asset = project.asset {
