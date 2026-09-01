@@ -12,9 +12,14 @@ struct ContentView: View {
     @State private var conversionTask: Task<Void, Never>?
     @State private var analysisID: UUID?
     @State private var conversionID: UUID?
+    @State private var playerSetupTask: Task<Void, Never>?
+    @State private var playerSetupID: UUID?
     @State private var isPreviewing = false
     @State private var lastCoverSeekTime: TimeInterval = 0
     @State private var completedOutput: LivePhotoOutput?
+    @State private var cropDragStartPosition: Double?
+    @State private var playerFramingTask: Task<Void, Never>?
+    @State private var playerFramingID: UUID?
 
     private let analyzer = VideoAnalyzer()
 
@@ -72,40 +77,51 @@ struct ContentView: View {
                 VideoPreviewView(player: player)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay {
-                        ZStack(alignment: .topTrailing) {
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .gesture(
-                                    DragGesture(minimumDistance: 0)
-                                        .onChanged { _ in
-                                            startLivePreview()
-                                        }
-                                        .onEnded { _ in
-                                            stopLivePreview()
-                                        }
-                                )
+                        GeometryReader { geometry in
+                            ZStack(alignment: .topTrailing) {
+                                Color.clear
+                                    .contentShape(Rectangle())
+                                    .focusable(canRepositionCrop)
+                                    .gesture(previewDragGesture(in: geometry.size))
+                                    .simultaneousGesture(
+                                        TapGesture(count: 2)
+                                            .onEnded { centerCrop() }
+                                    )
+                                    .onMoveCommand(perform: nudgeCrop)
+                                    .onHover { hovering in
+                                        guard canRepositionCrop else { return }
+                                        (hovering ? NSCursor.openHand : NSCursor.arrow).set()
+                                    }
+                                    .accessibilityElement()
+                                    .accessibilityLabel("Crop position")
+                                    .accessibilityValue(cropPositionAccessibilityValue)
+                                    .accessibilityHidden(!canRepositionCrop)
+                                    .accessibilityAdjustableAction { direction in
+                                        adjustCropForAccessibility(direction)
+                                    }
 
-                            Button(action: toggleLivePreview) {
-                                Image(systemName: isPreviewing ? "stop.fill" : "livephoto")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(.white)
-                                    .padding(8)
-                                    .background(.black.opacity(0.55), in: Circle())
+                                Button(action: toggleLivePreview) {
+                                    Image(systemName: isPreviewing ? "stop.fill" : "livephoto")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                        .padding(8)
+                                        .background(.black.opacity(0.55), in: Circle())
+                                }
+                                .buttonStyle(.plain)
+                                .padding(10)
+                                .disabled(!canPreview)
+                                .help(isPreviewing ? "Stop Live Photo preview" : "Play Live Photo preview")
+                                .accessibilityLabel(
+                                    isPreviewing ? "Stop Live Photo preview" : "Play Live Photo preview"
+                                )
                             }
-                            .buttonStyle(.plain)
-                            .padding(10)
-                            .disabled(!canPreview)
-                            .help(isPreviewing ? "Stop Live Photo preview" : "Play Live Photo preview")
-                            .accessibilityLabel(
-                                isPreviewing ? "Stop Live Photo preview" : "Play Live Photo preview"
-                            )
                         }
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 12)
 
                 if canPreview {
-                    Label("Press and hold the preview to play", systemImage: "livephoto")
+                    Label(previewHint, systemImage: previewHintIcon)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -114,6 +130,28 @@ struct ContentView: View {
             }
 
             if let asset = project.asset {
+                FramingControlsView(
+                    sourceSize: project.naturalSize,
+                    aspectRatio: Binding(
+                        get: { project.framing.aspectRatio },
+                        set: {
+                            project.setOutputAspectRatio($0)
+                            markProjectDirty()
+                            updatePlayerLoop()
+                        }
+                    ),
+                    position: Binding(
+                        get: { project.framing.position },
+                        set: {
+                            project.setCropPosition($0)
+                            markProjectDirty()
+                            updatePlayerLoop()
+                        }
+                    )
+                )
+                .padding(.horizontal, 20)
+                .disabled(project.state == .converting)
+
                 TimelineScrubberView(
                     duration: project.duration,
                     sourceStartTime: project.sourceTimeRange.start,
@@ -240,16 +278,42 @@ struct ContentView: View {
     private func updatePlayerLoop() {
         guard let asset = project.asset else { return }
 
+        playerSetupTask?.cancel()
+        let operationID = UUID()
+        playerSetupID = operationID
         let range = project.selectedTimeRange
-        let playerItem = AVPlayerItem(asset: asset)
-        let queuePlayer = AVQueuePlayer(playerItem: playerItem)
-        looper = AVPlayerLooper(
-            player: queuePlayer,
-            templateItem: playerItem,
-            timeRange: range
-        )
-        player = queuePlayer
-        showCover()
+        let framing = project.framing
+
+        playerSetupTask = Task {
+            do {
+                let configuration = try await VideoCompositionBuilder().makeConfiguration(
+                    for: asset,
+                    framing: framing
+                )
+                try Task.checkCancellation()
+                guard playerSetupID == operationID, project.asset === asset else { return }
+
+                let playerItem = AVPlayerItem(asset: asset)
+                playerItem.videoComposition = configuration.videoComposition
+                let queuePlayer = AVQueuePlayer(playerItem: playerItem)
+                looper = AVPlayerLooper(
+                    player: queuePlayer,
+                    templateItem: playerItem,
+                    timeRange: range
+                )
+                player?.pause()
+                player = queuePlayer
+                showCover()
+            } catch is CancellationError {
+                return
+            } catch {
+                guard playerSetupID == operationID else { return }
+                project.state = .failed(
+                    kind: .analysis,
+                    message: "Couldn’t prepare the video preview. \(error.localizedDescription)"
+                )
+            }
+        }
     }
 
     private func startLivePreview() {
@@ -338,6 +402,131 @@ struct ContentView: View {
         case .idle, .analyzing, .converting:
             return false
         }
+    }
+
+    private var canRepositionCrop: Bool {
+        canPreview && project.framing.cropAxis(in: project.naturalSize) != .none
+    }
+
+    private var previewHint: String {
+        canRepositionCrop ? "Drag the preview to reposition the crop" : "Press and hold the preview to play"
+    }
+
+    private var previewHintIcon: String {
+        canRepositionCrop ? "hand.draw" : "livephoto"
+    }
+
+    private var cropPositionAccessibilityValue: String {
+        let percentage = Int(((project.framing.position + 1) / 2 * 100).rounded())
+        return "\(percentage) percent"
+    }
+
+    private func previewDragGesture(in containerSize: CGSize) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                if canRepositionCrop {
+                    if cropDragStartPosition == nil {
+                        cropDragStartPosition = project.framing.position
+                    }
+                    let previewSize = fittedPreviewSize(in: containerSize)
+                    let position = project.framing.position(
+                        afterDragging: value.translation,
+                        from: cropDragStartPosition ?? project.framing.position,
+                        previewSize: previewSize,
+                        sourceSize: project.naturalSize
+                    )
+                    project.setCropPosition(position)
+                    markProjectDirty()
+                    updateCurrentPlayerFraming()
+                    NSCursor.closedHand.set()
+                } else {
+                    startLivePreview()
+                }
+            }
+            .onEnded { _ in
+                if cropDragStartPosition != nil {
+                    cropDragStartPosition = nil
+                    NSCursor.openHand.set()
+                    updatePlayerLoop()
+                } else {
+                    stopLivePreview()
+                }
+            }
+    }
+
+    private func fittedPreviewSize(in containerSize: CGSize) -> CGSize {
+        let outputSize = project.framing.renderSize(for: project.naturalSize)
+        guard outputSize.width > 0, outputSize.height > 0 else { return containerSize }
+        let scale = min(
+            containerSize.width / outputSize.width,
+            containerSize.height / outputSize.height
+        )
+        return CGSize(width: outputSize.width * scale, height: outputSize.height * scale)
+    }
+
+    private func updateCurrentPlayerFraming() {
+        guard let asset = project.asset else { return }
+
+        playerFramingTask?.cancel()
+        let operationID = UUID()
+        playerFramingID = operationID
+        let framing = project.framing
+
+        playerFramingTask = Task {
+            do {
+                let configuration = try await VideoCompositionBuilder().makeConfiguration(
+                    for: asset,
+                    framing: framing
+                )
+                try Task.checkCancellation()
+                guard playerFramingID == operationID, project.asset === asset else { return }
+
+                if let queuePlayer = player as? AVQueuePlayer {
+                    for item in queuePlayer.items() {
+                        item.videoComposition = configuration.videoComposition
+                    }
+                } else {
+                    player?.currentItem?.videoComposition = configuration.videoComposition
+                }
+                showCover()
+            } catch {
+                return
+            }
+        }
+    }
+
+    private func centerCrop() {
+        guard canRepositionCrop else { return }
+        project.setCropPosition(0)
+        markProjectDirty()
+        updatePlayerLoop()
+    }
+
+    private func nudgeCrop(_ direction: MoveCommandDirection) {
+        guard canRepositionCrop else { return }
+        let axis = project.framing.cropAxis(in: project.naturalSize)
+        let delta: Double
+        switch (axis, direction) {
+        case (.horizontal, .left), (.vertical, .up):
+            delta = -0.05
+        case (.horizontal, .right), (.vertical, .down):
+            delta = 0.05
+        default:
+            return
+        }
+        setCropPosition(project.framing.position + delta)
+    }
+
+    private func adjustCropForAccessibility(_ direction: AccessibilityAdjustmentDirection) {
+        setCropPosition(
+            project.framing.position + (direction == .increment ? 0.05 : -0.05)
+        )
+    }
+
+    private func setCropPosition(_ position: Double) {
+        project.setCropPosition(position)
+        markProjectDirty()
+        updatePlayerLoop()
     }
 
     private func failureKind(for error: Error) -> ConversionFailureKind {
@@ -446,6 +635,11 @@ struct ContentView: View {
         player?.pause()
         player = nil
         looper = nil
+        playerSetupTask = nil
+        playerSetupID = nil
+        playerFramingTask = nil
+        playerFramingID = nil
+        cropDragStartPosition = nil
         droppedURL = nil
         project.reset()
         generator.progress = 0
@@ -455,9 +649,15 @@ struct ContentView: View {
     private func cancelCurrentWork() {
         analysisTask?.cancel()
         conversionTask?.cancel()
+        playerSetupTask?.cancel()
+        playerFramingTask?.cancel()
         analysisTask = nil
         conversionTask = nil
+        playerSetupTask = nil
+        playerFramingTask = nil
         analysisID = nil
         conversionID = nil
+        playerSetupID = nil
+        playerFramingID = nil
     }
 }

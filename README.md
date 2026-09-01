@@ -41,6 +41,7 @@ You found a perfect video clip — a sunset, a pet doing something hilarious, a 
 
 - 🪄 **One-click conversion** — drag, drop, done.
 - 🎚 **Interactive timeline scrubber** — pick the perfect 3-second segment with thumbnail preview.
+- ✂️ **Output framing** — keep the original ratio or crop to 9:16 and 1:1 with adjustable positioning.
 - 🔊 **Audio preserved** — unlike most converters, your original audio stays in the Live Photo.
 - 📥 **Direct Photos library import** — no Finder shuffle, no AirDrop dance.
 - 📂 **Paired-file export** — save the matching HEIC + MOV files to a folder when you do not want to use Photos.
@@ -79,16 +80,17 @@ In Xcode, select your development team under **Signing & Capabilities** (require
 
 ## 🎯 Usage
 
-1. **Load a video** — drag and drop a video onto the app window, or click **Choose File**. Supports MOV, MP4, M4V, AVI, MKV, and more.
-2. **Pick your moment** *(videos > 5s only)* — drag the timeline scrubber to choose the 3-second segment you want as your Live Photo.
-3. **Convert** — click **Convert to Live Photo**. Video2Live will:
+1. **Load a video** — drag and drop a video onto the app window, or click **Choose File**. Supports formats that macOS can decode.
+2. **Frame your Live Photo** — keep the original ratio or choose 9:16 / 1:1, then adjust the crop position.
+3. **Pick your moment** *(videos > 5s only)* — drag the timeline scrubber to choose the 3-second segment you want as your Live Photo.
+4. **Convert** — click **Convert to Live Photo**. Video2Live will:
    - Extract a key frame from the middle of your selected range
    - Generate a HEIC still image with the proper Apple maker metadata
     - Encode an H.264/AAC MOV clip with the `quicktime.content.identifier` and `still-image-time` tags
     - Validate the generated pair before saving it
    - Import the paired files into your Photos library as a Live Photo
     - Or export the matching HEIC + MOV files from the overflow menu
-4. **Enjoy** — open Photos, find your new Live Photo, long-press it (or hover with Force Touch), and watch it animate. Set it as your wallpaper, share it on iMessage, or upload to Instagram.
+5. **Enjoy** — open Photos, find your new Live Photo, long-press it (or hover with Force Touch), and watch it animate. Set it as your wallpaper, share it on iMessage, or upload to Instagram.
 
 ---
 
@@ -108,6 +110,7 @@ In Xcode, select your development team under **Signing & Capabilities** (require
 | Step | What happens |
 |------|--------------|
 | **Analyze** | Reads video duration, resolution, and track info via `AVURLAsset` |
+| **Compose** | Applies the selected aspect ratio and crop position to preview, cover, and video |
 | **Extract Frame** | Uses `AVAssetImageGenerator` to capture a precise frame at the midpoint of your selection |
 | **Write HEIC** | Creates a HEIC image with `kCGImagePropertyMakerAppleDictionary` containing the shared content identifier UUID |
 | **Write MOV** | Exports the clip with `com.apple.quicktime.content.identifier` and `com.apple.quicktime.still-image-time` metadata so Photos recognizes it as a Live Photo pair |
@@ -125,12 +128,14 @@ Video2Live/
 ├── Video2LiveApp.swift             # App entry point
 ├── Models/
 │   ├── ConversionState.swift       # State machine for the conversion flow
-│   └── VideoProject.swift          # Observable model holding video state
+│   ├── VideoProject.swift          # Observable model holding video state
+│   └── VideoFraming.swift          # Shared crop geometry and output sizing
 ├── Views/
 │   ├── ContentView.swift           # Root view with state-based switching
 │   ├── DropZoneView.swift          # Drag-and-drop + file picker
 │   ├── VideoPreviewView.swift      # AVPlayerView wrapper
 │   ├── TimelineScrubberView.swift  # Thumbnail strip with range selector
+│   ├── FramingControlsView.swift   # Aspect ratio and crop position controls
 │   └── ConvertButton.swift         # Convert button + progress indicator
 ├── Services/
 │   ├── VideoAnalyzer.swift         # Video metadata analysis
@@ -139,6 +144,7 @@ Video2Live/
 │   ├── LivePhotoGenerator.swift    # Conversion pipeline orchestrator
 │   ├── LivePhotoExporter.swift     # Collision-safe HEIC + MOV folder export
 │   ├── LivePhotoValidator.swift    # Post-generation metadata verification
+│   ├── VideoCompositionBuilder.swift # Shared preview and export composition
 │   └── PhotosImporter.swift        # Photos library import
 └── Utilities/
     ├── MetadataConstants.swift     # Metadata key constants

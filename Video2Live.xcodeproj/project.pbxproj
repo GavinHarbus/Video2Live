@@ -26,6 +26,9 @@
 		A10017 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10019 /* AboutView.swift */; };
 		A10018 /* LivePhotoExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10020 /* LivePhotoExporter.swift */; };
 		A10019 /* LivePhotoValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10021 /* LivePhotoValidator.swift */; };
+		A10020 /* VideoFraming.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10022 /* VideoFraming.swift */; };
+		A10021 /* VideoCompositionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10023 /* VideoCompositionBuilder.swift */; };
+		A10022 /* FramingControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10024 /* FramingControlsView.swift */; };
 		A20001 /* VideoProjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20001 /* VideoProjectTests.swift */; };
 		A20002 /* LivePhotoExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20002 /* LivePhotoExporterTests.swift */; };
 		A20003 /* LivePhotoPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20003 /* LivePhotoPipelineTests.swift */; };
@@ -64,6 +67,9 @@
 		B10019 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		B10020 /* LivePhotoExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePhotoExporter.swift; sourceTree = "<group>"; };
 		B10021 /* LivePhotoValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePhotoValidator.swift; sourceTree = "<group>"; };
+		B10022 /* VideoFraming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoFraming.swift; sourceTree = "<group>"; };
+		B10023 /* VideoCompositionBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCompositionBuilder.swift; sourceTree = "<group>"; };
+		B10024 /* FramingControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramingControlsView.swift; sourceTree = "<group>"; };
 		B20000 /* Video2LiveTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Video2LiveTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20001 /* VideoProjectTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProjectTests.swift; sourceTree = "<group>"; };
 		B20002 /* LivePhotoExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePhotoExporterTests.swift; sourceTree = "<group>"; };
@@ -117,6 +123,7 @@
 			children = (
 				B10007 /* ConversionState.swift */,
 				B10008 /* VideoProject.swift */,
+				B10022 /* VideoFraming.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -130,6 +137,7 @@
 				B10005 /* TimelineScrubberView.swift */,
 				B10006 /* ConvertButton.swift */,
 				B10019 /* AboutView.swift */,
+				B10024 /* FramingControlsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -143,6 +151,7 @@
 				B10012 /* LivePhotoGenerator.swift */,
 				B10020 /* LivePhotoExporter.swift */,
 				B10021 /* LivePhotoValidator.swift */,
+				B10023 /* VideoCompositionBuilder.swift */,
 				B10013 /* PhotosImporter.swift */,
 			);
 			path = Services;
@@ -285,6 +294,9 @@
 				A10017 /* AboutView.swift in Sources */,
 				A10018 /* LivePhotoExporter.swift in Sources */,
 				A10019 /* LivePhotoValidator.swift in Sources */,
+				A10020 /* VideoFraming.swift in Sources */,
+				A10021 /* VideoCompositionBuilder.swift in Sources */,
+				A10022 /* FramingControlsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,5 +1,6 @@
 import AVFoundation
 import CoreVideo
+import ImageIO
 import XCTest
 @testable import Video2Live
 
@@ -28,9 +29,14 @@ final class LivePhotoPipelineTests: XCTestCase {
         let movURL = temporaryDirectory.appendingPathComponent("live.mov")
         let duration = try await sourceAsset.load(.duration)
         let keyFrameTime = CMTime(seconds: 0.1, preferredTimescale: 600)
+        let framing = VideoFraming(aspectRatio: .portrait, position: 0)
 
         let heicWriter = HEICWriter()
-        let image = try await heicWriter.extractKeyFrame(from: sourceAsset, at: keyFrameTime)
+        let image = try await heicWriter.extractKeyFrame(
+            from: sourceAsset,
+            at: keyFrameTime,
+            framing: framing
+        )
         try heicWriter.writeHEIC(
             image: image,
             contentIdentifier: contentIdentifier,
@@ -41,6 +47,7 @@ final class LivePhotoPipelineTests: XCTestCase {
             timeRange: CMTimeRange(start: .zero, duration: duration),
             contentIdentifier: contentIdentifier,
             stillImageTime: keyFrameTime,
+            framing: framing,
             to: movURL
         )
 
@@ -51,6 +58,18 @@ final class LivePhotoPipelineTests: XCTestCase {
             expectedDuration: duration,
             expectedStillImageTime: keyFrameTime
         )
+
+        guard let imageSource = CGImageSourceCreateWithURL(heicURL as CFURL, nil),
+              let outputImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil) else {
+            return XCTFail("Generated HEIC could not be opened")
+        }
+        XCTAssertEqual(outputImage.width, 36)
+        XCTAssertEqual(outputImage.height, 64)
+
+        let outputAsset = AVURLAsset(url: movURL)
+        let outputTracks = try await outputAsset.loadTracks(withMediaType: .video)
+        let outputSize = try await XCTUnwrap(outputTracks.first).load(.naturalSize)
+        XCTAssertEqual(outputSize, CGSize(width: 36, height: 64))
     }
 
     private func makeSourceVideo(at url: URL) async throws -> AVURLAsset {

@@ -48,7 +48,11 @@ final class LivePhotoGenerator {
         await update(stage: .extractingCover, progress: 0.1)
         try Task.checkCancellation()
         let heicWriter = HEICWriter()
-        let keyFrame = try await heicWriter.extractKeyFrame(from: asset, at: keyFrameTime)
+        let keyFrame = try await heicWriter.extractKeyFrame(
+            from: asset,
+            at: keyFrameTime,
+            framing: project.framing
+        )
         try Task.checkCancellation()
         await update(stage: .extractingCover, progress: 0.25)
 
@@ -67,6 +71,7 @@ final class LivePhotoGenerator {
             timeRange: timeRange,
             contentIdentifier: contentIdentifier,
             stillImageTime: stillImageTime,
+            framing: project.framing,
             to: movURL
         )
         try Task.checkCancellation()

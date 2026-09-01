@@ -4,11 +4,19 @@ import ImageIO
 import UniformTypeIdentifiers
 
 struct HEICWriter {
-    func extractKeyFrame(from asset: AVURLAsset, at time: CMTime) async throws -> CGImage {
+    func extractKeyFrame(
+        from asset: AVURLAsset,
+        at time: CMTime,
+        framing: VideoFraming = VideoFraming()
+    ) async throws -> CGImage {
+        let configuration = try await VideoCompositionBuilder().makeConfiguration(
+            for: asset,
+            framing: framing
+        )
         let generator = AVAssetImageGenerator(asset: asset)
         generator.requestedTimeToleranceBefore = .zero
         generator.requestedTimeToleranceAfter = .zero
-        generator.appliesPreferredTrackTransform = true
+        generator.videoComposition = configuration.videoComposition
 
         let (image, _) = try await generator.image(at: time)
         return image

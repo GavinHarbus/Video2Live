@@ -14,6 +14,7 @@ struct MOVWriter {
         timeRange: CMTimeRange,
         contentIdentifier: String,
         stillImageTime: CMTime,
+        framing: VideoFraming = VideoFraming(),
         to outputURL: URL
     ) async throws {
         try Task.checkCancellation()
@@ -33,12 +34,17 @@ struct MOVWriter {
             throw V2LError.movExportFailed("No video track in composition")
         }
 
-        let videoSettings = try await makeVideoWriterSettings(for: videoTrack)
+        let renderConfiguration = try await VideoCompositionBuilder().makeConfiguration(
+            for: composition,
+            framing: framing
+        )
+        let videoSettings = makeVideoWriterSettings(
+            renderSize: renderConfiguration.geometry.renderSize
+        )
         guard writer.canApply(outputSettings: videoSettings, forMediaType: .video) else {
             throw V2LError.movExportFailed("H.264 encoding is not available for this video")
         }
         let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
-        videoInput.transform = try await videoTrack.load(.preferredTransform)
         videoInput.expectsMediaDataInRealTime = false
         guard writer.canAdd(videoInput) else {
             throw V2LError.movExportFailed("The video track cannot be written as QuickTime media")
@@ -71,12 +77,13 @@ struct MOVWriter {
         let metadataAdaptor = AVAssetWriterInputMetadataAdaptor(assetWriterInput: metadataInput)
 
         let reader = try AVAssetReader(asset: composition)
-        let videoOutput = AVAssetReaderTrackOutput(
-            track: videoTrack,
-            outputSettings: [
+        let videoOutput = AVAssetReaderVideoCompositionOutput(
+            videoTracks: [videoTrack],
+            videoSettings: [
                 kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
             ]
         )
+        videoOutput.videoComposition = renderConfiguration.videoComposition
         videoOutput.alwaysCopiesSampleData = false
         guard reader.canAdd(videoOutput) else {
             throw V2LError.unsupportedVideoEncoding
@@ -164,14 +171,9 @@ struct MOVWriter {
         }
     }
 
-    private func makeVideoWriterSettings(for track: AVAssetTrack) async throws -> [String: Any] {
-        let naturalSize = try await track.load(.naturalSize)
-        let width = max(2, Int(abs(naturalSize.width).rounded(.down)) & ~1)
-        let height = max(2, Int(abs(naturalSize.height).rounded(.down)) & ~1)
-        guard width > 0, height > 0 else {
-            throw V2LError.invalidVideoFile
-        }
-
+    private func makeVideoWriterSettings(renderSize: CGSize) -> [String: Any] {
+        let width = Int(renderSize.width)
+        let height = Int(renderSize.height)
         let averageBitRate = min(max(width * height * 5, 2_000_000), 20_000_000)
         return [
             AVVideoCodecKey: AVVideoCodecType.h264,

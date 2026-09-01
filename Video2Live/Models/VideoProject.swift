@@ -10,6 +10,7 @@ final class VideoProject {
     var duration: Double = 0
     var naturalSize: CGSize = .zero
     var state: ConversionState = .idle
+    var framing = VideoFraming()
 
     // For long videos: user-selected range
     var rangeStart: Double = 0
@@ -64,6 +65,14 @@ final class VideoProject {
         coverTime = min(max(rangeStart, newValue), upperBound)
     }
 
+    func setOutputAspectRatio(_ aspectRatio: OutputAspectRatio) {
+        framing = VideoFraming(aspectRatio: aspectRatio, position: 0)
+    }
+
+    func setCropPosition(_ position: Double) {
+        framing.position = min(max(position, -1), 1)
+    }
+
     func reset() {
         sourceURL = nil
         sourceTimeRange = .zero
@@ -73,6 +82,7 @@ final class VideoProject {
         rangeStart = 0
         rangeDuration = Self.maximumClipDuration
         coverTime = Self.maximumClipDuration / 2
+        framing = VideoFraming()
         asset = nil
     }
 }
