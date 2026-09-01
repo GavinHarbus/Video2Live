@@ -8,27 +8,29 @@ enum OutputAspectRatio: String, CaseIterable, Identifiable {
 
     var id: Self { self }
 
-    var title: String {
+    func title(for sourceSize: CGSize) -> String {
         switch self {
         case .original:
             return "Original"
         case .portrait:
             return "9:16"
         case .standard:
-            return "4:3"
+            return sourceSize.height > sourceSize.width ? "3:4" : "4:3"
         case .square:
             return "1:1"
         }
     }
 
-    fileprivate var components: CGSize? {
+    fileprivate func components(for sourceSize: CGSize) -> CGSize? {
         switch self {
         case .original:
             return nil
         case .portrait:
             return CGSize(width: 9, height: 16)
         case .standard:
-            return CGSize(width: 4, height: 3)
+            return sourceSize.height > sourceSize.width
+                ? CGSize(width: 3, height: 4)
+                : CGSize(width: 4, height: 3)
         case .square:
             return CGSize(width: 1, height: 1)
         }
@@ -46,7 +48,7 @@ struct VideoFraming: Equatable {
     var position: Double = 0
 
     func cropAxis(in sourceSize: CGSize) -> CropAxis {
-        guard let components = aspectRatio.components,
+        guard let components = aspectRatio.components(for: sourceSize),
               sourceSize.width > 0,
               sourceSize.height > 0 else {
             return .none
@@ -62,7 +64,7 @@ struct VideoFraming: Equatable {
 
     func cropRect(in sourceSize: CGSize) -> CGRect {
         let fullRect = CGRect(origin: .zero, size: sourceSize)
-        guard let components = aspectRatio.components,
+        guard let components = aspectRatio.components(for: sourceSize),
               sourceSize.width > 0,
               sourceSize.height > 0 else {
             return fullRect
@@ -87,7 +89,7 @@ struct VideoFraming: Equatable {
 
     func renderSize(for sourceSize: CGSize) -> CGSize {
         let cropSize = cropRect(in: sourceSize).size
-        guard let components = aspectRatio.components else {
+        guard let components = aspectRatio.components(for: sourceSize) else {
             return CGSize(
                 width: evenPixelValue(cropSize.width),
                 height: evenPixelValue(cropSize.height)

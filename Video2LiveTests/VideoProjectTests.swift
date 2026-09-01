@@ -101,6 +101,24 @@ final class VideoProjectTests: XCTestCase {
         )
     }
 
+    func testStandardFramingUsesThreeByFourForPortraitVideo() {
+        let sourceSize = CGSize(width: 1080, height: 1920)
+        let framing = VideoFraming(aspectRatio: .standard, position: 0)
+
+        let cropRect = framing.cropRect(in: sourceSize)
+
+        XCTAssertEqual(OutputAspectRatio.standard.title(for: sourceSize), "3:4")
+        XCTAssertEqual(framing.cropAxis(in: sourceSize), .vertical)
+        XCTAssertEqual(cropRect, CGRect(x: 0, y: 240, width: 1080, height: 1440))
+        XCTAssertEqual(framing.renderSize(for: sourceSize), CGSize(width: 1080, height: 1440))
+    }
+
+    func testStandardFramingUsesFourByThreeForLandscapeVideo() {
+        let sourceSize = CGSize(width: 1920, height: 1080)
+
+        XCTAssertEqual(OutputAspectRatio.standard.title(for: sourceSize), "4:3")
+    }
+
     func testChangingAspectRatioRecentersCrop() {
         let project = VideoProject()
         project.framing = VideoFraming(aspectRatio: .portrait, position: 0.8)

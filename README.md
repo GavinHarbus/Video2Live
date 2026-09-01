@@ -41,7 +41,7 @@ You found a perfect video clip — a sunset, a pet doing something hilarious, a 
 
 - 🪄 **One-click conversion** — drag, drop, done.
 - 🎚 **Interactive timeline scrubber** — pick the perfect 3-second segment with thumbnail preview.
-- ✂️ **Output framing** — keep the original ratio or crop to 9:16, 4:3, and 1:1 with adjustable positioning.
+- ✂️ **Output framing** — keep the original ratio or crop to 9:16, direction-aware 4:3 / 3:4, and 1:1 with adjustable positioning.
 - 🔊 **Audio preserved** — unlike most converters, your original audio stays in the Live Photo.
 - 🔇 **Optional mute** — preview and export without the source audio when preferred.
 - 📥 **Direct Photos library import** — no Finder shuffle, no AirDrop dance.
@@ -82,7 +82,7 @@ In Xcode, select your development team under **Signing & Capabilities** (require
 ## 🎯 Usage
 
 1. **Load a video** — drag and drop a video onto the app window, or click **Choose File**. Supports formats that macOS can decode.
-2. **Frame your Live Photo** — keep the original ratio or choose 9:16 / 4:3 / 1:1, adjust the crop position, and choose whether to keep the source audio.
+2. **Frame your Live Photo** — keep the original ratio or choose 9:16 / 4:3 (3:4 for portrait video) / 1:1, adjust the crop position, and choose whether to keep the source audio.
 3. **Pick your moment** *(videos > 5s only)* — drag the timeline scrubber to choose the 3-second segment you want as your Live Photo.
 4. **Convert** — click **Convert to Live Photo**. Video2Live will:
    - Extract a key frame from the middle of your selected range

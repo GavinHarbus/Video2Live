@@ -20,7 +20,7 @@ struct FramingControlsView: View {
 
             Picker("Output aspect ratio", selection: $aspectRatio) {
                 ForEach(OutputAspectRatio.allCases) { aspectRatio in
-                    Text(aspectRatio.title)
+                    Text(aspectRatio.title(for: sourceSize))
                         .tag(aspectRatio)
                 }
             }
