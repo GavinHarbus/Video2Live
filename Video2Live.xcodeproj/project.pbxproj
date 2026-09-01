@@ -29,6 +29,7 @@
 		A10020 /* VideoFraming.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10022 /* VideoFraming.swift */; };
 		A10021 /* VideoCompositionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10023 /* VideoCompositionBuilder.swift */; };
 		A10022 /* FramingControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10024 /* FramingControlsView.swift */; };
+		A10023 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B10025 /* PrivacyInfo.xcprivacy */; };
 		A20001 /* VideoProjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20001 /* VideoProjectTests.swift */; };
 		A20002 /* LivePhotoExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20002 /* LivePhotoExporterTests.swift */; };
 		A20003 /* LivePhotoPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20003 /* LivePhotoPipelineTests.swift */; };
@@ -70,6 +71,7 @@
 		B10022 /* VideoFraming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoFraming.swift; sourceTree = "<group>"; };
 		B10023 /* VideoCompositionBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCompositionBuilder.swift; sourceTree = "<group>"; };
 		B10024 /* FramingControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramingControlsView.swift; sourceTree = "<group>"; };
+		B10025 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		B20000 /* Video2LiveTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Video2LiveTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20001 /* VideoProjectTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProjectTests.swift; sourceTree = "<group>"; };
 		B20002 /* LivePhotoExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePhotoExporterTests.swift; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 			children = (
 				B10001 /* Video2LiveApp.swift */,
 				B10017 /* Info.plist */,
+				B10025 /* PrivacyInfo.xcprivacy */,
 				B10018 /* Video2Live.entitlements */,
 				B10016 /* Assets.xcassets */,
 				D10002 /* Models */,
@@ -266,6 +269,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10016 /* Assets.xcassets in Resources */,
+				A10023 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -445,17 +449,19 @@
 				CODE_SIGN_ENTITLEMENTS = Video2Live/Video2Live.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Video2Live/Info.plist;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright (c) 2026 Gavin Schnee Studio. All Rights Reserved.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.video2live.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -471,17 +477,19 @@
 				CODE_SIGN_ENTITLEMENTS = Video2Live/Video2Live.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Video2Live/Info.plist;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright (c) 2026 Gavin Schnee Studio. All Rights Reserved.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.video2live.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
