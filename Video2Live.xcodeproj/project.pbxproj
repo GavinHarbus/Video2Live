@@ -24,7 +24,25 @@
 		A10015 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10015 /* Errors.swift */; };
 		A10016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10016 /* Assets.xcassets */; };
 		A10017 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10019 /* AboutView.swift */; };
+		A10018 /* LivePhotoExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10020 /* LivePhotoExporter.swift */; };
+		A10019 /* LivePhotoValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10021 /* LivePhotoValidator.swift */; };
+		A10020 /* VideoFraming.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10022 /* VideoFraming.swift */; };
+		A10021 /* VideoCompositionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10023 /* VideoCompositionBuilder.swift */; };
+		A10022 /* FramingControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10024 /* FramingControlsView.swift */; };
+		A20001 /* VideoProjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20001 /* VideoProjectTests.swift */; };
+		A20002 /* LivePhotoExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20002 /* LivePhotoExporterTests.swift */; };
+		A20003 /* LivePhotoPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20003 /* LivePhotoPipelineTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		G20001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E10000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E10001;
+			remoteInfo = Video2Live;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		B10000 /* Video2Live.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Video2Live.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -47,10 +65,26 @@
 		B10017 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B10018 /* Video2Live.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Video2Live.entitlements; sourceTree = "<group>"; };
 		B10019 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		B10020 /* LivePhotoExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePhotoExporter.swift; sourceTree = "<group>"; };
+		B10021 /* LivePhotoValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePhotoValidator.swift; sourceTree = "<group>"; };
+		B10022 /* VideoFraming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoFraming.swift; sourceTree = "<group>"; };
+		B10023 /* VideoCompositionBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCompositionBuilder.swift; sourceTree = "<group>"; };
+		B10024 /* FramingControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramingControlsView.swift; sourceTree = "<group>"; };
+		B20000 /* Video2LiveTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Video2LiveTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B20001 /* VideoProjectTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProjectTests.swift; sourceTree = "<group>"; };
+		B20002 /* LivePhotoExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePhotoExporterTests.swift; sourceTree = "<group>"; };
+		B20003 /* LivePhotoPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePhotoPipelineTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		C10001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C20001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -64,6 +98,7 @@
 			isa = PBXGroup;
 			children = (
 				D10001 /* Video2Live */,
+				D20001 /* Video2LiveTests */,
 				D10006 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,6 +123,7 @@
 			children = (
 				B10007 /* ConversionState.swift */,
 				B10008 /* VideoProject.swift */,
+				B10022 /* VideoFraming.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -101,6 +137,7 @@
 				B10005 /* TimelineScrubberView.swift */,
 				B10006 /* ConvertButton.swift */,
 				B10019 /* AboutView.swift */,
+				B10024 /* FramingControlsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -112,6 +149,9 @@
 				B10010 /* HEICWriter.swift */,
 				B10011 /* MOVWriter.swift */,
 				B10012 /* LivePhotoGenerator.swift */,
+				B10020 /* LivePhotoExporter.swift */,
+				B10021 /* LivePhotoValidator.swift */,
+				B10023 /* VideoCompositionBuilder.swift */,
 				B10013 /* PhotosImporter.swift */,
 			);
 			path = Services;
@@ -130,8 +170,19 @@
 			isa = PBXGroup;
 			children = (
 				B10000 /* Video2Live.app */,
+				B20000 /* Video2LiveTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		D20001 /* Video2LiveTests */ = {
+			isa = PBXGroup;
+			children = (
+				B20001 /* VideoProjectTests.swift */,
+				B20002 /* LivePhotoExporterTests.swift */,
+				B20003 /* LivePhotoPipelineTests.swift */,
+			);
+			path = Video2LiveTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -154,6 +205,23 @@
 			productReference = B10000 /* Video2Live.app */;
 			productType = "com.apple.product-type.application";
 		};
+		E20001 /* Video2LiveTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F20003 /* Build configuration list for PBXNativeTarget "Video2LiveTests" */;
+			buildPhases = (
+				E20002 /* Sources */,
+				C20001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				G20002 /* PBXTargetDependency */,
+			);
+			name = Video2LiveTests;
+			productName = Video2LiveTests;
+			productReference = B20000 /* Video2LiveTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -166,6 +234,10 @@
 				TargetAttributes = {
 					E10001 = {
 						CreatedOnToolsVersion = 15.4;
+					};
+					E20001 = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = E10001;
 					};
 				};
 			};
@@ -183,6 +255,7 @@
 			projectRoot = "";
 			targets = (
 				E10001 /* Video2Live */,
+				E20001 /* Video2LiveTests */,
 			);
 		};
 /* End PBXProject section */
@@ -219,10 +292,33 @@
 				A10014 /* MetadataConstants.swift in Sources */,
 				A10015 /* Errors.swift in Sources */,
 				A10017 /* AboutView.swift in Sources */,
+				A10018 /* LivePhotoExporter.swift in Sources */,
+				A10019 /* LivePhotoValidator.swift in Sources */,
+				A10020 /* VideoFraming.swift in Sources */,
+				A10021 /* VideoCompositionBuilder.swift in Sources */,
+				A10022 /* FramingControlsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E20002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A20001 /* VideoProjectTests.swift in Sources */,
+				A20002 /* LivePhotoExporterTests.swift in Sources */,
+				A20003 /* LivePhotoPipelineTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		G20002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E10001 /* Video2Live */;
+			targetProxy = G20001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		F10010 /* Debug */ = {
@@ -393,6 +489,38 @@
 			};
 			name = Release;
 		};
+		F20020 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.video2live.appTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Video2Live.app/Contents/MacOS/Video2Live";
+			};
+			name = Debug;
+		};
+		F20021 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.video2live.appTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Video2Live.app/Contents/MacOS/Video2Live";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -410,6 +538,15 @@
 			buildConfigurations = (
 				F10020 /* Debug */,
 				F10021 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F20003 /* Build configuration list for PBXNativeTarget "Video2LiveTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F20020 /* Debug */,
+				F20021 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

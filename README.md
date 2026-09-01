@@ -41,14 +41,18 @@ You found a perfect video clip — a sunset, a pet doing something hilarious, a 
 
 - 🪄 **One-click conversion** — drag, drop, done.
 - 🎚 **Interactive timeline scrubber** — pick the perfect 3-second segment with thumbnail preview.
+- ✂️ **Output framing** — keep the original ratio or crop to 9:16, direction-aware 4:3 / 3:4, and 1:1 with adjustable positioning.
 - 🔊 **Audio preserved** — unlike most converters, your original audio stays in the Live Photo.
+- 🔇 **Optional mute** — preview and export without the source audio when preferred.
 - 📥 **Direct Photos library import** — no Finder shuffle, no AirDrop dance.
+- 📂 **Paired-file export** — save the matching HEIC + MOV files to a folder when you do not want to use Photos.
+- ✅ **Output validation** — verifies pairing identifiers, cover timing, duration, and video encoding before saving.
 - 🔒 **Fully sandboxed** — runs inside the macOS App Sandbox; only sees the video you pick.
 - 🛡 **Photos Add-Only permission** — Video2Live can save photos but *cannot* read your library.
 - 📡 **100% offline** — zero network requests, zero analytics, zero tracking.
 - 🍎 **Native Swift + SwiftUI** — fast, lightweight, no Electron, no bundled Chromium.
 - 🆓 **Free & open source** — MIT licensed; audit, fork, and build it yourself.
-- 📁 **Wide format support** — MOV, MP4, M4V, AVI, MKV, and more.
+- 📁 **Broad format support** — accepts formats that macOS can decode, then writes a Photos-compatible H.264/AAC MOV.
 
 ---
 
@@ -77,14 +81,17 @@ In Xcode, select your development team under **Signing & Capabilities** (require
 
 ## 🎯 Usage
 
-1. **Load a video** — drag and drop a video onto the app window, or click **Choose File**. Supports MOV, MP4, M4V, AVI, MKV, and more.
-2. **Pick your moment** *(videos > 5s only)* — drag the timeline scrubber to choose the 3-second segment you want as your Live Photo.
-3. **Convert** — click **Convert to Live Photo**. Video2Live will:
+1. **Load a video** — drag and drop a video onto the app window, or click **Choose File**. Supports formats that macOS can decode.
+2. **Frame your Live Photo** — keep the original ratio or choose 9:16 / 4:3 (3:4 for portrait video) / 1:1, adjust the crop position, and choose whether to keep the source audio.
+3. **Pick your moment** *(videos > 5s only)* — drag the timeline scrubber to choose the 3-second segment you want as your Live Photo.
+4. **Convert** — click **Convert to Live Photo**. Video2Live will:
    - Extract a key frame from the middle of your selected range
    - Generate a HEIC still image with the proper Apple maker metadata
-   - Export a MOV clip with the `quicktime.content.identifier` and `still-image-time` tags
+    - Encode an H.264/AAC MOV clip with the `quicktime.content.identifier` and `still-image-time` tags
+    - Validate the generated pair before saving it
    - Import the paired files into your Photos library as a Live Photo
-4. **Enjoy** — open Photos, find your new Live Photo, long-press it (or hover with Force Touch), and watch it animate. Set it as your wallpaper, share it on iMessage, or upload to Instagram.
+    - Or export the matching HEIC + MOV files from the overflow menu
+5. **Enjoy** — open Photos, find your new Live Photo, long-press it (or hover with Force Touch), and watch it animate. Set it as your wallpaper, share it on iMessage, or upload to Instagram.
 
 ---
 
@@ -104,9 +111,11 @@ In Xcode, select your development team under **Signing & Capabilities** (require
 | Step | What happens |
 |------|--------------|
 | **Analyze** | Reads video duration, resolution, and track info via `AVURLAsset` |
+| **Compose** | Applies the selected aspect ratio and crop position to preview, cover, and video |
 | **Extract Frame** | Uses `AVAssetImageGenerator` to capture a precise frame at the midpoint of your selection |
 | **Write HEIC** | Creates a HEIC image with `kCGImagePropertyMakerAppleDictionary` containing the shared content identifier UUID |
 | **Write MOV** | Exports the clip with `com.apple.quicktime.content.identifier` and `com.apple.quicktime.still-image-time` metadata so Photos recognizes it as a Live Photo pair |
+| **Validate** | Reads both generated files back and verifies their identifiers, timing, duration, and H.264 video track |
 | **Import** | Uses `PHAssetCreationRequest` to add the HEIC + MOV pair to your Photos library |
 
 A Live Photo is just a paired HEIC + MOV with matching metadata. Video2Live handles the entire pipeline correctly — frame extraction, metadata embedding, and Photos import — in one click.
@@ -120,22 +129,34 @@ Video2Live/
 ├── Video2LiveApp.swift             # App entry point
 ├── Models/
 │   ├── ConversionState.swift       # State machine for the conversion flow
-│   └── VideoProject.swift          # Observable model holding video state
+│   ├── VideoProject.swift          # Observable model holding video state
+│   └── VideoFraming.swift          # Shared crop geometry and output sizing
 ├── Views/
 │   ├── ContentView.swift           # Root view with state-based switching
 │   ├── DropZoneView.swift          # Drag-and-drop + file picker
 │   ├── VideoPreviewView.swift      # AVPlayerView wrapper
 │   ├── TimelineScrubberView.swift  # Thumbnail strip with range selector
+│   ├── FramingControlsView.swift   # Aspect ratio and crop position controls
 │   └── ConvertButton.swift         # Convert button + progress indicator
 ├── Services/
 │   ├── VideoAnalyzer.swift         # Video metadata analysis
 │   ├── HEICWriter.swift            # Key frame extraction + HEIC writing
 │   ├── MOVWriter.swift             # Video trimming + QuickTime metadata
 │   ├── LivePhotoGenerator.swift    # Conversion pipeline orchestrator
+│   ├── LivePhotoExporter.swift     # Collision-safe HEIC + MOV folder export
+│   ├── LivePhotoValidator.swift    # Post-generation metadata verification
+│   ├── VideoCompositionBuilder.swift # Shared preview and export composition
 │   └── PhotosImporter.swift        # Photos library import
 └── Utilities/
     ├── MetadataConstants.swift     # Metadata key constants
     └── Errors.swift                # Error types
+Video2LiveTests/                    # Unit and media-pipeline integration tests
+```
+
+Run the test suite with:
+
+```bash
+xcodebuild -project Video2Live.xcodeproj -scheme Video2Live -destination 'platform=macOS' test
 ```
 
 ---
@@ -145,7 +166,7 @@ Video2Live/
 Video2Live requests the absolute minimum:
 
 - **Photos Library (Add Only)** — to save the generated Live Photo. Cannot read your existing library.
-- **User-Selected File Access (Read Only)** — to read the single video file you pick.
+- **User-Selected File Access** — reads the video you pick and writes only to an export folder you explicitly choose.
 
 The app runs inside the macOS App Sandbox and **never makes a network request**. There is no analytics SDK, no telemetry, no crash reporter, nothing. Your videos never leave your Mac.
 
@@ -167,7 +188,7 @@ This archives, exports, and creates `build/Video2Live.dmg` with a drag-to-Applic
 
 - **"Photos library access was denied"** → System Settings → Privacy & Security → Photos → enable Video2Live.
 - **Conversion succeeded but the Live Photo doesn't animate** → Make sure the source has at least one video track. Pure-audio files or some screen recordings may not work.
-- **Metadata seems missing** → In rare cases, passthrough export strips custom tags. The app automatically falls back to `AVAssetWriter` when this is detected.
+- **A format will not open** → The source codec must be decodable by AVFoundation. Try converting the source to H.264 or HEVC first.
 - **App is "damaged" / unsigned warning** → Right-click `Video2Live.app` → **Open** → confirm. Or run `xattr -cr /Applications/Video2Live.app`.
 
 Still stuck? [Open an issue](https://github.com/GavinHarbus/Video2Live/issues) — happy to help.

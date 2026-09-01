@@ -5,11 +5,18 @@ struct VideoAnalyzer {
         asset: AVURLAsset,
         timeRange: CMTimeRange,
         duration: Double,
-        size: CGSize
+        size: CGSize,
+        hasAudio: Bool
     ) {
         let asset = AVURLAsset(url: url, options: [
             AVURLAssetPreferPreciseDurationAndTimingKey: true
         ])
+
+        let isReadable = try await asset.load(.isReadable)
+        let isPlayable = try await asset.load(.isPlayable)
+        guard isReadable, isPlayable else {
+            throw V2LError.unsupportedVideoEncoding
+        }
 
         let tracks = try await asset.loadTracks(withMediaType: .video)
 
@@ -30,7 +37,12 @@ struct VideoAnalyzer {
             width: abs(transformedSize.width),
             height: abs(transformedSize.height)
         )
+        guard naturalSize.width > 0, naturalSize.height > 0 else {
+            throw V2LError.invalidVideoFile
+        }
 
-        return (asset, timeRange, duration, naturalSize)
+        let audioTracks = try await asset.loadTracks(withMediaType: .audio)
+
+        return (asset, timeRange, duration, naturalSize, !audioTracks.isEmpty)
     }
 }

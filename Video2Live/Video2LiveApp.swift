@@ -1,5 +1,46 @@
 import SwiftUI
 
+private struct OpenVideoActionKey: FocusedValueKey {
+    typealias Value = () -> Void
+}
+
+private struct CancelVideoOperationActionKey: FocusedValueKey {
+    typealias Value = () -> Void
+}
+
+extension FocusedValues {
+    var openVideoAction: (() -> Void)? {
+        get { self[OpenVideoActionKey.self] }
+        set { self[OpenVideoActionKey.self] = newValue }
+    }
+
+    var cancelVideoOperationAction: (() -> Void)? {
+        get { self[CancelVideoOperationActionKey.self] }
+        set { self[CancelVideoOperationActionKey.self] = newValue }
+    }
+}
+
+private struct VideoCommands: Commands {
+    @FocusedValue(\.openVideoAction) private var openVideoAction
+    @FocusedValue(\.cancelVideoOperationAction) private var cancelVideoOperationAction
+
+    var body: some Commands {
+        CommandGroup(after: .newItem) {
+            Button("Open Video…") {
+                openVideoAction?()
+            }
+            .keyboardShortcut("o", modifiers: .command)
+            .disabled(openVideoAction == nil)
+
+            Button("Cancel Current Operation") {
+                cancelVideoOperationAction?()
+            }
+            .keyboardShortcut(.cancelAction)
+            .disabled(cancelVideoOperationAction == nil)
+        }
+    }
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
@@ -62,6 +103,8 @@ struct Video2LiveApp: App {
         }
         .defaultSize(width: 720, height: 520)
         .commands {
+            VideoCommands()
+
             CommandGroup(replacing: .appInfo) {
                 Button("About Video2Live") {
                     AuxiliaryWindowPresenter.shared.showAbout()

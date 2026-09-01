@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 struct DropZoneView: View {
     @Binding var droppedURL: URL?
+    let chooseFile: () -> Void
     @State private var isTargeted = false
 
     var body: some View {
@@ -18,9 +19,7 @@ struct DropZoneView: View {
             Text("or")
                 .foregroundStyle(.tertiary)
 
-            Button("Choose File") {
-                openFilePicker()
-            }
+            Button("Choose File", action: chooseFile)
             .buttonStyle(.borderedProminent)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -46,9 +45,6 @@ struct DropZoneView: View {
                 return
             }
 
-            let movieTypes: Set<String> = ["mov", "mp4", "m4v", "avi", "mkv"]
-            guard movieTypes.contains(url.pathExtension.lowercased()) else { return }
-
             DispatchQueue.main.async {
                 droppedURL = url
             }
@@ -56,14 +52,4 @@ struct DropZoneView: View {
         return true
     }
 
-    private func openFilePicker() {
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.movie, .mpeg4Movie, .quickTimeMovie, .avi]
-        panel.allowsMultipleSelection = false
-        panel.canChooseDirectories = false
-
-        if panel.runModal() == .OK {
-            droppedURL = panel.url
-        }
-    }
 }

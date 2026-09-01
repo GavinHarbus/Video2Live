@@ -10,6 +10,9 @@ final class VideoProject {
     var duration: Double = 0
     var naturalSize: CGSize = .zero
     var state: ConversionState = .idle
+    var framing = VideoFraming()
+    var sourceHasAudio = false
+    var includesAudio = false
 
     // For long videos: user-selected range
     var rangeStart: Double = 0
@@ -45,6 +48,7 @@ final class VideoProject {
     }
 
     func configureClip(for videoDuration: Double) {
+        duration = videoDuration
         rangeDuration = min(Self.maximumClipDuration, videoDuration)
         rangeStart = max(0, (videoDuration - rangeDuration) / 2)
         coverTime = rangeStart + rangeDuration / 2
@@ -63,6 +67,18 @@ final class VideoProject {
         coverTime = min(max(rangeStart, newValue), upperBound)
     }
 
+    func setOutputAspectRatio(_ aspectRatio: OutputAspectRatio) {
+        framing = VideoFraming(aspectRatio: aspectRatio, position: 0)
+    }
+
+    func setCropPosition(_ position: Double) {
+        framing.position = min(max(position, -1), 1)
+    }
+
+    func setIncludesAudio(_ includesAudio: Bool) {
+        self.includesAudio = sourceHasAudio && includesAudio
+    }
+
     func reset() {
         sourceURL = nil
         sourceTimeRange = .zero
@@ -72,6 +88,9 @@ final class VideoProject {
         rangeStart = 0
         rangeDuration = Self.maximumClipDuration
         coverTime = Self.maximumClipDuration / 2
+        framing = VideoFraming()
+        sourceHasAudio = false
+        includesAudio = false
         asset = nil
     }
 }

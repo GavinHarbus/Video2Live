@@ -14,11 +14,17 @@ struct MOVWriter {
         timeRange: CMTimeRange,
         contentIdentifier: String,
         stillImageTime: CMTime,
+        framing: VideoFraming = VideoFraming(),
+        includesAudio: Bool = true,
         to outputURL: URL
     ) async throws {
         try Task.checkCancellation()
 
-        let composition = try await makeComposition(from: sourceAsset, timeRange: timeRange)
+        let composition = try await makeComposition(
+            from: sourceAsset,
+            timeRange: timeRange,
+            includesAudio: includesAudio
+        )
         let writer = try AVAssetWriter(outputURL: outputURL, fileType: .mov)
 
         let contentIdentifierItem = AVMutableMetadataItem()
@@ -33,8 +39,17 @@ struct MOVWriter {
             throw V2LError.movExportFailed("No video track in composition")
         }
 
-        let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: nil)
-        videoInput.transform = try await videoTrack.load(.preferredTransform)
+        let renderConfiguration = try await VideoCompositionBuilder().makeConfiguration(
+            for: composition,
+            framing: framing
+        )
+        let videoSettings = makeVideoWriterSettings(
+            renderSize: renderConfiguration.geometry.renderSize
+        )
+        guard writer.canApply(outputSettings: videoSettings, forMediaType: .video) else {
+            throw V2LError.movExportFailed("H.264 encoding is not available for this video")
+        }
+        let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
         videoInput.expectsMediaDataInRealTime = false
         guard writer.canAdd(videoInput) else {
             throw V2LError.movExportFailed("The video track cannot be written as QuickTime media")
@@ -43,14 +58,20 @@ struct MOVWriter {
 
         let audioTracks = try await composition.loadTracks(withMediaType: .audio)
         var audioInput: AVAssetWriterInput?
-        if !audioTracks.isEmpty {
-            let input = AVAssetWriterInput(mediaType: .audio, outputSettings: nil)
+        var audioReaderSettings: [String: Any]?
+        if let audioTrack = audioTracks.first {
+            let settings = try await makeAudioSettings(for: audioTrack)
+            guard writer.canApply(outputSettings: settings.writer, forMediaType: .audio) else {
+                throw V2LError.movExportFailed("AAC encoding is not available for this audio track")
+            }
+            let input = AVAssetWriterInput(mediaType: .audio, outputSettings: settings.writer)
             input.expectsMediaDataInRealTime = false
             guard writer.canAdd(input) else {
-                throw V2LError.movExportFailed("The audio track cannot be written as QuickTime media")
+                throw V2LError.movExportFailed("The audio track cannot be encoded as AAC")
             }
             writer.add(input)
             audioInput = input
+            audioReaderSettings = settings.reader
         }
 
         let metadataInput = try makeStillImageMetadataInput()
@@ -61,17 +82,28 @@ struct MOVWriter {
         let metadataAdaptor = AVAssetWriterInputMetadataAdaptor(assetWriterInput: metadataInput)
 
         let reader = try AVAssetReader(asset: composition)
-        let videoOutput = AVAssetReaderTrackOutput(track: videoTrack, outputSettings: nil)
+        let videoOutput = AVAssetReaderVideoCompositionOutput(
+            videoTracks: [videoTrack],
+            videoSettings: [
+                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+            ]
+        )
+        videoOutput.videoComposition = renderConfiguration.videoComposition
+        videoOutput.alwaysCopiesSampleData = false
         guard reader.canAdd(videoOutput) else {
-            throw V2LError.movExportFailed("The video track cannot be read")
+            throw V2LError.unsupportedVideoEncoding
         }
         reader.add(videoOutput)
 
         var audioOutput: AVAssetReaderTrackOutput?
-        if let audioTrack = audioTracks.first {
-            let output = AVAssetReaderTrackOutput(track: audioTrack, outputSettings: nil)
+        if let audioTrack = audioTracks.first, let audioReaderSettings {
+            let output = AVAssetReaderTrackOutput(
+                track: audioTrack,
+                outputSettings: audioReaderSettings
+            )
+            output.alwaysCopiesSampleData = false
             guard reader.canAdd(output) else {
-                throw V2LError.movExportFailed("The audio track cannot be read")
+                throw V2LError.movExportFailed("The audio track cannot be decoded")
             }
             reader.add(output)
             audioOutput = output
@@ -144,9 +176,54 @@ struct MOVWriter {
         }
     }
 
+    private func makeVideoWriterSettings(renderSize: CGSize) -> [String: Any] {
+        let width = Int(renderSize.width)
+        let height = Int(renderSize.height)
+        let averageBitRate = min(max(width * height * 5, 2_000_000), 20_000_000)
+        return [
+            AVVideoCodecKey: AVVideoCodecType.h264,
+            AVVideoWidthKey: width,
+            AVVideoHeightKey: height,
+            AVVideoCompressionPropertiesKey: [
+                AVVideoAverageBitRateKey: averageBitRate,
+                AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel
+            ]
+        ]
+    }
+
+    private func makeAudioSettings(
+        for track: AVAssetTrack
+    ) async throws -> (writer: [String: Any], reader: [String: Any]) {
+        let formatDescriptions = try await track.load(.formatDescriptions)
+        guard let description = formatDescriptions.first,
+              let basicDescription = CMAudioFormatDescriptionGetStreamBasicDescription(description)?.pointee else {
+            throw V2LError.movExportFailed("The audio format could not be read")
+        }
+
+        let sampleRate = min(max(basicDescription.mSampleRate, 8_000), 96_000)
+        let channelCount = min(max(Int(basicDescription.mChannelsPerFrame), 1), 2)
+        let readerSettings: [String: Any] = [
+            AVFormatIDKey: kAudioFormatLinearPCM,
+            AVSampleRateKey: sampleRate,
+            AVNumberOfChannelsKey: channelCount,
+            AVLinearPCMBitDepthKey: 16,
+            AVLinearPCMIsFloatKey: false,
+            AVLinearPCMIsBigEndianKey: false,
+            AVLinearPCMIsNonInterleaved: false
+        ]
+        let writerSettings: [String: Any] = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: sampleRate,
+            AVNumberOfChannelsKey: channelCount,
+            AVEncoderBitRateKey: channelCount == 1 ? 96_000 : 160_000
+        ]
+        return (writerSettings, readerSettings)
+    }
+
     private func makeComposition(
         from sourceAsset: AVURLAsset,
-        timeRange: CMTimeRange
+        timeRange: CMTimeRange,
+        includesAudio: Bool
     ) async throws -> AVMutableComposition {
         let sourceVideoTracks = try await sourceAsset.loadTracks(withMediaType: .video)
         guard let sourceVideoTrack = sourceVideoTracks.first else {
@@ -169,7 +246,9 @@ struct MOVWriter {
         try compositionVideoTrack.insertTimeRange(videoRange, of: sourceVideoTrack, at: .zero)
         compositionVideoTrack.preferredTransform = try await sourceVideoTrack.load(.preferredTransform)
 
-        let sourceAudioTracks = try await sourceAsset.loadTracks(withMediaType: .audio)
+        let sourceAudioTracks = includesAudio
+            ? try await sourceAsset.loadTracks(withMediaType: .audio)
+            : []
         if let sourceAudioTrack = sourceAudioTracks.first {
             let sourceAudioRange = try await sourceAudioTrack.load(.timeRange)
             let audioRange = CMTimeRangeGetIntersection(videoRange, otherRange: sourceAudioRange)
