@@ -11,6 +11,12 @@ struct VideoAnalyzer {
             AVURLAssetPreferPreciseDurationAndTimingKey: true
         ])
 
+        let isReadable = try await asset.load(.isReadable)
+        let isPlayable = try await asset.load(.isPlayable)
+        guard isReadable, isPlayable else {
+            throw V2LError.unsupportedVideoEncoding
+        }
+
         let tracks = try await asset.loadTracks(withMediaType: .video)
 
         guard let videoTrack = tracks.first else {
@@ -30,6 +36,9 @@ struct VideoAnalyzer {
             width: abs(transformedSize.width),
             height: abs(transformedSize.height)
         )
+        guard naturalSize.width > 0, naturalSize.height > 0 else {
+            throw V2LError.invalidVideoFile
+        }
 
         return (asset, timeRange, duration, naturalSize)
     }

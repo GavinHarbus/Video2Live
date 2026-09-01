@@ -70,13 +70,21 @@ struct TimelineScrubberView: View {
 
                 ZStack(alignment: .leading) {
                     // Thumbnail strip
-                    HStack(spacing: 0) {
-                        ForEach(0..<thumbnails.count, id: \.self) { index in
-                            Image(nsImage: thumbnails[index])
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: width / CGFloat(thumbnailCount), height: height)
-                                .clipped()
+                    if thumbnails.isEmpty {
+                        Rectangle()
+                            .fill(.quaternary)
+                        ProgressView()
+                            .controlSize(.small)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        HStack(spacing: 0) {
+                            ForEach(0..<thumbnails.count, id: \.self) { index in
+                                Image(nsImage: thumbnails[index])
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: width / CGFloat(thumbnailCount), height: height)
+                                    .clipped()
+                            }
                         }
                     }
 
@@ -148,6 +156,14 @@ struct TimelineScrubberView: View {
                             dragCoverOffset = nil
                         }
                 )
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(
+                    editingMode == .clip ? "Selected clip" : "Cover frame"
+                )
+                .accessibilityValue(accessibilityValue)
+                .accessibilityAdjustableAction { direction in
+                    adjustTimeline(direction)
+                }
             }
             .frame(height: height)
 
@@ -187,9 +203,36 @@ struct TimelineScrubberView: View {
     }
 
     private func formatTime(_ seconds: Double) -> String {
-        let mins = Int(seconds) / 60
-        let secs = Int(seconds) % 60
-        return String(format: "%d:%02d", mins, secs)
+        let roundedSeconds = (seconds * 10).rounded() / 10
+        let mins = Int(roundedSeconds) / 60
+        let secs = roundedSeconds - Double(mins * 60)
+        return String(format: "%d:%04.1f", mins, secs)
+    }
+
+    private var accessibilityValue: String {
+        if editingMode == .clip, canTrim {
+            return "\(formatTime(displayedRangeStart)) to \(formatTime(displayedRangeStart + rangeDuration))"
+        }
+        return formatTime(displayedCoverTime)
+    }
+
+    private func adjustTimeline(_ direction: AccessibilityAdjustmentDirection) {
+        let adjustment = direction == .increment ? 0.1 : -0.1
+        if editingMode == .clip, canTrim {
+            let newStart = min(
+                max(0, rangeStart + adjustment),
+                max(0, duration - rangeDuration)
+            )
+            rangeStart = newStart
+        } else {
+            let newCoverTime = constrainedCoverTime(
+                coverTime + adjustment,
+                rangeStart: rangeStart
+            )
+            coverTime = newCoverTime
+            onCoverScrub(newCoverTime)
+            onCoverScrubEnded()
+        }
     }
 
     private func generateThumbnails() async {
@@ -199,6 +242,7 @@ struct TimelineScrubberView: View {
 
         var images: [NSImage] = []
         for i in 0..<thumbnailCount {
+            guard !Task.isCancelled else { return }
             let time = CMTimeAdd(
                 sourceStartTime,
                 CMTime(
@@ -208,12 +252,15 @@ struct TimelineScrubberView: View {
             )
             do {
                 let (cgImage, _) = try await generator.image(at: time)
+                guard !Task.isCancelled else { return }
                 images.append(NSImage(cgImage: cgImage, size: NSSize(width: 60, height: 60)))
             } catch {
+                guard !Task.isCancelled else { return }
                 images.append(NSImage(size: NSSize(width: 60, height: 60)))
             }
         }
 
+        guard !Task.isCancelled else { return }
         await MainActor.run {
             thumbnails = images
         }

@@ -45,6 +45,7 @@ final class VideoProject {
     }
 
     func configureClip(for videoDuration: Double) {
+        duration = videoDuration
         rangeDuration = min(Self.maximumClipDuration, videoDuration)
         rangeStart = max(0, (videoDuration - rangeDuration) / 2)
         coverTime = rangeStart + rangeDuration / 2
