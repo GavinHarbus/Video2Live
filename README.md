@@ -6,12 +6,12 @@
 
 **Native Swift · 100% offline · Fully sandboxed · Open source (MIT)**
 
-[![Download](https://img.shields.io/badge/Download-v1.0.0%20DMG-blue?style=for-the-badge&logo=apple)](https://github.com/GavinHarbus/Video2Live/releases/tag/v1.0.0)
-[![macOS](https://img.shields.io/badge/macOS-14.0%2B-black?style=for-the-badge&logo=apple)](https://github.com/GavinHarbus/Video2Live/releases/latest)
+[![Mac App Store](https://img.shields.io/badge/Mac_App_Store-US%240.99_once-blue?style=for-the-badge&logo=apple)](https://apps.apple.com/us/app/video2livephoto/id6807438162?mt=12)
+[![macOS](https://img.shields.io/badge/macOS-14.0%2B-black?style=for-the-badge&logo=apple)](https://apps.apple.com/us/app/video2livephoto/id6807438162?mt=12)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/GavinHarbus/Video2Live?style=for-the-badge&logo=github)](https://github.com/GavinHarbus/Video2Live/stargazers)
 
-[**⬇️ Download for macOS**](https://github.com/GavinHarbus/Video2Live/releases/tag/v1.0.0) · [**🌐 Product page**](https://gavinschneestudio.org/products/video2live.html) · [**🐛 Report a bug**](https://github.com/GavinHarbus/Video2Live/issues) · [**⭐ Star the repo**](https://github.com/GavinHarbus/Video2Live)
+[**⬇️ Buy on the Mac App Store**](https://apps.apple.com/us/app/video2livephoto/id6807438162?mt=12) · [**🌐 Product page**](https://gavinschneestudio.org/products/video2live.html) · [**🐛 Report a bug**](https://github.com/GavinHarbus/Video2Live/issues) · [**⭐ Star the repo**](https://github.com/GavinHarbus/Video2Live)
 
 </div>
 
@@ -30,7 +30,7 @@ https://github.com/user-attachments/assets/b5496849-04d7-4657-bd52-f016626d8bed
 You found a perfect video clip — a sunset, a pet doing something hilarious, a beautiful drone shot — and you wish it could be your iPhone wallpaper or a Live Photo to share. Apple lets you set Live Photos as wallpapers and share them with the iconic press-to-play effect, but **converting a regular video into a real Live Photo is surprisingly painful**:
 
 - 🚫 Online converters upload your private videos to unknown servers.
-- 🚫 Most "Live Photo maker" apps cost money, are buggy, or strip your audio.
+- 🚫 Some "Live Photo maker" apps are buggy or strip your audio.
 - 🚫 Manual workflows require Shortcuts hacks, command-line tools, and a lot of patience.
 
 **Video2LivePhoto fixes all of that.** It's a tiny, native macOS app that uses Apple's own frameworks (`AVFoundation`, `Photos`) to produce *real* Live Photos with the proper QuickTime metadata — the same kind iPhones produce — and drops them straight into your Photos library. No upload, no account, no subscription, no telemetry.
@@ -51,23 +51,35 @@ You found a perfect video clip — a sunset, a pet doing something hilarious, a 
 - 🛡 **Photos Add-Only permission** — Video2LivePhoto can save photos but *cannot* read your library.
 - 📡 **100% offline** — zero network requests, zero analytics, zero tracking.
 - 🍎 **Native Swift + SwiftUI** — fast, lightweight, no Electron, no bundled Chromium.
-- 🆓 **Free & open source** — MIT licensed; audit, fork, and build it yourself.
+- 📖 **Open source (MIT)** — source code is freely available to audit, fork, and build; the Mac App Store download is a one-time purchase.
 - 📁 **Broad format support** — accepts formats that macOS can decode, then writes a Photos-compatible H.264/AAC MOV.
 
 ---
 
 ## ⬇️ Install
 
-### Recommended: Download the DMG
+### Recommended: Mac App Store
 
-1. Go to the [latest release](https://github.com/GavinHarbus/Video2Live/releases/tag/v1.0.0).
+[Buy Video2LivePhoto on the Mac App Store](https://apps.apple.com/us/app/video2livephoto/id6807438162?mt=12).
+
+**US$0.99, one-time purchase.** All app features included, with no subscription or in-app purchases.
+
+Prices vary by region. See your local App Store for the current price.
+
+> **Requirements:** macOS 14.0 (Sonoma) or later. Apple Silicon and Intel Macs both supported.
+
+### Earlier version: GitHub DMG
+
+The existing **v1.0.0 DMG** remains available at no charge. It is an earlier release; use the Mac App Store for the current store version.
+
+1. Go to the [v1.0.0 release](https://github.com/GavinHarbus/Video2Live/releases/tag/v1.0.0).
 2. Download `Video2Live.dmg`.
 3. Open the DMG and drag **Video2Live.app** into your **Applications** folder.
 4. Launch it. On first run, macOS may ask you to confirm — go to **System Settings → Privacy & Security** if needed.
 
-> **Requirements:** macOS 14.0 (Sonoma) or later. Apple Silicon and Intel Macs both supported.
-
 ### Or build from source
+
+The source remains available under the MIT license. No App Store purchase is needed to build it yourself.
 
 ```bash
 git clone https://github.com/GavinHarbus/Video2Live.git
@@ -124,7 +136,7 @@ A Live Photo is just a paired HEIC + MOV with matching metadata. Video2LivePhoto
 
 ## 🗂 Project Structure
 
-```
+```text
 Video2Live/
 ├── Video2LiveApp.swift             # App entry point
 ├── Models/
